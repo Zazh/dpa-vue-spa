@@ -20,7 +20,7 @@
           <ul class="progress-info__list">
             <!-- Для in-progress и locked показываем X/Y уроков -->
             <li v-if="cardState === 'in-progress' || cardState === 'locked'" class="progress-info__list--item">
-              <p>
+              <p class="flex gap-1">
                 <span class="lessons_count">{{ completedLessons }}/{{ totalLessons }}</span>
                 <span class="lessons_count--text">{{ getLessonsWord(totalLessons) }}</span>
               </p>
@@ -28,7 +28,7 @@
 
             <!-- Для completed показываем X/Y уроков -->
             <li v-else-if="cardState === 'completed'" class="progress-info__list--item">
-              <p>
+              <p class="flex gap-1">
                 <span class="lessons_count">{{ totalLessons }}/{{ totalLessons }}</span>
                 <span class="lessons_count--text">{{ getLessonsWord(totalLessons) }}</span>
               </p>
@@ -36,7 +36,7 @@
 
             <!-- Для not-started и "Все курсы" показываем просто количество -->
             <li v-else class="progress-info__list--item">
-              <p>
+              <p class="flex gap-1">
                 <span class="lessons_count">{{ totalLessons }}</span>
                 <span class="lessons_count--text">{{ getLessonsWord(totalLessons) }}</span>
               </p>
@@ -44,7 +44,7 @@
 
             <!-- Вторая колонка: для in-progress и locked показываем процент -->
             <li v-if="cardState === 'in-progress' || cardState === 'locked'" class="progress-info__list--item">
-              <p>
+              <p class="flex gap-1">
                 <span class="lessons_time">{{ progressPercentage }}%</span>
                 <span class="lessons_time--text">пройдено</span>
               </p>
@@ -57,7 +57,7 @@
                   <path d="M7.5 4.5V7.5L9.75 9.75M14.25 7.5C14.25 11.2279 11.2279 14.25 7.5 14.25C3.77208 14.25 0.75 11.2279 0.75 7.5C0.75 3.77208 3.77208 0.75 7.5 0.75C11.2279 0.75 14.25 3.77208 14.25 7.5Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
                 </svg>
               </span>
-              <p>
+              <p class="flex gap-1">
                 <span class="lessons_time">{{ formatDuration(courseDuration) }}</span>
                 <span class="lessons_time--text">{{ getHoursWord(courseDuration || 0) }}</span>
               </p>
@@ -126,9 +126,7 @@
       <!-- Locked: Замочек + время до разблокировки -->
       <template v-else-if="cardState === 'locked'">
         <div class="icon">
-          <svg class="w-7 text-gray-500" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 2C9.79086 2 8 3.79086 8 6V8H6C4.89543 8 4 8.89543 4 10V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V10C20 8.89543 19.1046 8 18 8H16V6C16 3.79086 14.2091 2 12 2ZM14 8V6C14 4.89543 13.1046 4 12 4C10.8954 4 10 4.89543 10 6V8H14ZM12 13C11.4477 13 11 13.4477 11 14V17C11 17.5523 11.4477 18 12 18C12.5523 18 13 17.5523 13 17V14C13 13.4477 12.5523 13 12 13Z" fill="currentColor"/>
-          </svg>
+          <svg class="h-7 text-red-500" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 3a5 5 0 0 1 5 5v2.005c.77.015 1.246.07 1.635.268a2.5 2.5 0 0 1 1.092 1.092C20 11.9 20 12.6 20 14v3c0 1.4 0 2.1-.273 2.635a2.5 2.5 0 0 1-1.092 1.092C18.1 21 17.4 21 16 21H8c-1.4 0-2.1 0-2.635-.273a2.5 2.5 0 0 1-1.093-1.092C4 19.1 4 18.4 4 17v-3c0-1.4 0-2.1.272-2.635a2.5 2.5 0 0 1 1.093-1.092c.389-.199.865-.253 1.635-.268V8a5 5 0 0 1 5-5zm3 5v2H9V8a3 3 0 1 1 6 0z" fill="currentColor"/></svg>
         </div>
         <p class="text-sm text-gray-500 leading-tight font-medium inline-block">
           <span class="pt-1 inline-flex">Будет доступно {{ timeUntilAvailable }}</span>

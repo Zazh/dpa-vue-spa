@@ -51,14 +51,14 @@
         </ul>
       </div>
 
-      <!-- 🆕 ДОБАВЬТЕ: Отладочная информация -->
-      <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded">
-        <p class="text-sm">
-          <strong>Активная вкладка:</strong> {{ activeTab }}<br>
-          <strong>Всех курсов:</strong> {{ allCourses.length }}<br>
-          <strong>Моих курсов:</strong> {{ myCourses.length }}
-        </p>
-      </div>
+<!--      &lt;!&ndash; 🆕 ДОБАВЬТЕ: Отладочная информация &ndash;&gt;-->
+<!--      <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded">-->
+<!--        <p class="text-sm">-->
+<!--          <strong>Активная вкладка:</strong> {{ activeTab }}<br>-->
+<!--          <strong>Всех курсов:</strong> {{ allCourses.length }}<br>-->
+<!--          <strong>Моих курсов:</strong> {{ myCourses.length }}-->
+<!--        </p>-->
+<!--      </div>-->
 
       <!-- Загрузка -->
       <div v-if="coursesLoading" class="py-8 text-center">
@@ -75,15 +75,15 @@
       <div v-else class="w-full">
         <!-- ВСЕ КУРСЫ -->
         <div v-if="activeTab === 'all'" class="courses-content">
-          <!-- 🆕 ДОБАВЬТЕ: Отладочный блок -->
-          <div class="col-span-full mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
-            <p class="text-sm">
-              <strong>🔍 Отладка "Все курсы":</strong><br>
-              Показывается блок: {{ activeTab === 'all' ? 'Да' : 'Нет' }}<br>
-              Количество курсов: {{ allCourses.length }}<br>
-              Курсы пустые: {{ allCourses.length === 0 ? 'Да' : 'Нет' }}
-            </p>
-          </div>
+<!--          &lt;!&ndash; 🆕 ДОБАВЬТЕ: Отладочный блок &ndash;&gt;-->
+<!--          <div class="col-span-full mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded">-->
+<!--            <p class="text-sm">-->
+<!--              <strong>🔍 Отладка "Все курсы":</strong><br>-->
+<!--              Показывается блок: {{ activeTab === 'all' ? 'Да' : 'Нет' }}<br>-->
+<!--              Количество курсов: {{ allCourses.length }}<br>-->
+<!--              Курсы пустые: {{ allCourses.length === 0 ? 'Да' : 'Нет' }}-->
+<!--            </p>-->
+<!--          </div>-->
 
           <div v-if="allCourses.length === 0" class="col-span-full text-center py-12">
             <p class="text-gray-500 text-lg">Курсы не найдены</p>
@@ -101,18 +101,21 @@
         <!-- МОИ КУРСЫ -->
         <div v-if="activeTab === 'my'" class="courses-content">
 
-          <article v-if="enrichedMyCourses.length === 0" class="courses-card col-span-full md:col-span-6 lg:col-span-4 base-card">
+          <article
+              v-if="enrichedMyCourses.length === 0"
+              @click="handleTabChange('all')"
+              class="courses-card col-span-full md:col-span-6 lg:col-span-4 base-card cursor-pointer hover:shadow-lg transition-shadow">
             <div class="card_body">
               <div class="empty">
                 <div class="size-12 flex justify-center items-center bg-gray-300 rounded-md">
                   +
                 </div>
-                <p class="text-sm text-gray-700 ">Выбрать курс</p>
+                <p class="text-sm text-gray-700">Выбрать курс</p>
               </div>
             </div>
             <div class="card_footer">
               <p class="text-sm text-gray-700 leading-tight font-medium inline-block">
-                У вас нет доступных курсов. После покупки они будут на это странице
+                У вас нет доступных курсов. После покупки они будут на этой странице
               </p>
             </div>
           </article>
@@ -129,11 +132,6 @@
     </section>
 
     <div class="dashboard-container">
-      <div class="header-section">
-        <button @click="handleLogout" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
-          Выйти
-        </button>
-      </div>
 
       <div v-if="loading" class="py-8 text-center">
         <p class="text-gray-600">Загрузка...</p>
@@ -393,12 +391,5 @@ const loadCourseProgressDetails = async () => {
 const handleTabChange = (tab) => {
   console.log('🔄 КЛИК на вкладку:', tab);
   activeTab.value = tab;
-};
-
-const handleLogout = () => {
-  localStorage.removeItem('access_token');
-  localStorage.removeItem('refresh_token');
-  sessionStorage.removeItem('email');
-  router.push({ name: 'CheckEmail' });
 };
 </script>
