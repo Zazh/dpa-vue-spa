@@ -57,6 +57,12 @@ const routes = [
         name: 'JoinGroup',
         component: JoinGroupView,
     },
+    {
+        path: '/courses/:id',
+        name: 'CourseDetail',
+        component: () => import('@/views/CourseDetailView.vue'),
+        meta: { requiresAuth: true }
+    },
 ];
 
 const router = createRouter({

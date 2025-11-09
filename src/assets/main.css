@@ -295,13 +295,17 @@
         @apply w-full absolute bottom-2 px-2 z-25;
     }
     .lesson-card__status {
-        @apply w-full absolute top-1 px-2 z-25 text-green-500;
+        @apply w-full absolute top-0 z-25 text-green-500;
+    }
+
+    .lesson-card__status .locked-info {
+        @apply aspect-video bg-black flex items-center justify-center z-0;
     }
     .lesson-card__title {
         @apply font-medium leading-tight text-gray-700 text-sm;
     }
     .lesson-card__pictures {
-        @apply flex items-center justify-center bg-blue-600 h-full;
+        @apply flex items-center justify-center  h-full;
     }
 
     .authorization-form {
