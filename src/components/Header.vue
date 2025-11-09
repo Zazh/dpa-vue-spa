@@ -1,7 +1,3 @@
-<script setup>
-
-</script>
-
 <template>
   <header class="header">
     <div class="brand--logo">
@@ -44,12 +40,282 @@
             </span>
           </a>
         </li>
-        <li class="nav-item">
-          <button class="nav-item--dropdown">
-            <span id="profile_name">A</span>
+        <li class="nav-item" ref="profileRef">
+          <button
+              @click="toggleMenu"
+              class="nav-item--dropdown"
+              :class="{ 'active': isMenuOpen }">
+            <span id="profile_name">{{ userInitial }}</span>
           </button>
+
+          <!-- Выпадающее меню -->
+          <transition name="dropdown">
+            <div v-if="isMenuOpen" class="profile-dropdown">
+              <!-- Заголовок с email -->
+              <div class="profile-dropdown-header">
+                <div class="profile-avatar-large">
+                  <span>{{ userInitial }}</span>
+                </div>
+                <div class="profile-info">
+                  <p class="profile-name">{{ userName }}</p>
+                  <p class="profile-email">{{ userEmail }}</p>
+                </div>
+              </div>
+
+              <!-- Разделитель -->
+              <div class="profile-dropdown-divider"></div>
+
+              <!-- Пункты меню -->
+              <div class="profile-dropdown-menu">
+                <!-- Настройки -->
+                <button
+                    @click="goToSettings"
+                    class="profile-dropdown-item">
+                  <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  <span>Настройки</span>
+                </button>
+
+                <!-- Выйти -->
+                <button
+                    @click="handleLogout"
+                    class="profile-dropdown-item logout-item">
+                  <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  <span>Выйти</span>
+                </button>
+              </div>
+            </div>
+          </transition>
         </li>
       </ul>
     </nav>
   </header>
 </template>
+
+<script setup>
+import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { accountAPI } from '@/services/api';
+
+const router = useRouter();
+
+// Состояние меню
+const isMenuOpen = ref(false);
+const profileRef = ref(null);
+
+// Данные пользователя
+const user = ref(null);
+
+// Computed: Имя пользователя
+const userName = computed(() => {
+  if (!user.value) return 'Пользователь';
+  return user.value.first_name || user.value.email || 'Пользователь';
+});
+
+// Computed: Email
+const userEmail = computed(() => {
+  return user.value?.email || '';
+});
+
+// Computed: Первая буква (вместо "A")
+const userInitial = computed(() => {
+  if (!user.value) return 'A';
+
+  // Если есть имя - берем первую букву имени
+  if (user.value.first_name) {
+    return user.value.first_name.charAt(0).toUpperCase();
+  }
+
+  // Если имени нет - берем первую букву email
+  if (user.value.email) {
+    return user.value.email.charAt(0).toUpperCase();
+  }
+
+  return 'A';
+});
+
+// Переключение меню
+const toggleMenu = () => {
+  isMenuOpen.value = !isMenuOpen.value;
+};
+
+// Закрытие меню при клике вне его
+const handleClickOutside = (event) => {
+  if (profileRef.value && !profileRef.value.contains(event.target)) {
+    isMenuOpen.value = false;
+  }
+};
+
+// Загрузка профиля
+const loadProfile = async () => {
+  try {
+    const response = await accountAPI.getProfile();
+    user.value = response.data;
+    console.log('👤 Профиль загружен:', user.value);
+  } catch (err) {
+    console.error('❌ Ошибка загрузки профиля:', err);
+  }
+};
+
+// Переход в настройки
+const goToSettings = () => {
+  isMenuOpen.value = false;
+  console.log('🔧 Переход в настройки (пока пустая функция)');
+  // TODO: router.push({ name: 'Settings' });
+};
+
+// Выход
+const handleLogout = () => {
+  console.log('👋 Выход из системы');
+  localStorage.removeItem('access_token');
+  localStorage.removeItem('refresh_token');
+  sessionStorage.removeItem('email');
+  isMenuOpen.value = false;
+  router.push({ name: 'CheckEmail' });
+};
+
+// Lifecycle hooks
+onMounted(() => {
+  loadProfile();
+  document.addEventListener('click', handleClickOutside);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside);
+});
+</script>
+
+<style scoped>
+/* Позиционирование для родителя */
+.nav-item {
+  position: relative;
+}
+
+/* Выпадающее меню */
+.profile-dropdown {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  width: 280px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  z-index: 1000;
+}
+
+/* Заголовок */
+.profile-dropdown-header {
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.profile-avatar-large {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.profile-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-name {
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 0.25rem 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.9375rem;
+}
+
+.profile-email {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Разделитель */
+.profile-dropdown-divider {
+  height: 1px;
+  background: #e5e7eb;
+}
+
+/* Меню */
+.profile-dropdown-menu {
+  padding: 0.5rem;
+}
+
+.profile-dropdown-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  text-align: left;
+  font-size: 0.9375rem;
+  color: #374151;
+  font-weight: 500;
+}
+
+.profile-dropdown-item:hover {
+  background-color: #f3f4f6;
+}
+
+.profile-dropdown-item svg {
+  flex-shrink: 0;
+  color: currentColor;
+}
+
+/* Кнопка выхода (красная) */
+.profile-dropdown-item.logout-item {
+  color: #dc2626;
+}
+
+.profile-dropdown-item.logout-item:hover {
+  background-color: #fef2f2;
+}
+
+/* Анимация выпадающего меню */
+.dropdown-enter-active,
+.dropdown-leave-active {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.dropdown-enter-from,
+.dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+.dropdown-enter-to,
+.dropdown-leave-from {
+  opacity: 1;
+  transform: translateY(0);
+}
+</style>
