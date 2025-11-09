@@ -1,0 +1,330 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&family=Roboto+Mono:wght@500&display=swap');
+@import "tailwindcss";
+
+@theme {
+    --color-stone-50:   #F2F3F3;
+    --color-gray-100:   #F7F7F7;
+    --color-gray-500:   #7D7D7D;
+    --color-gray-600:   #4D4D4D;
+    --color-gray-700:   #868686;
+    --color-gray-800:   #2B2B2B;
+    --color-green-600:  #2F8152;
+    --bg-green-600:     #2F8152;
+    --color-blue-600:   #3D3BFF;
+    --color-red-500:    #FF2C2C;
+}
+
+/* Helvetica Neue */
+@font-face {
+    font-family: 'Helvetica Neue';
+    src: url('fonts/HelveticaNeue-Light.woff2') format('woff2');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Helvetica Neue';
+    src: url('fonts/HelveticaNeue-Regular.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Helvetica Neue';
+    src: url('fonts/HelveticaNeue-Medium.woff2') format('woff2');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Helvetica Neue';
+    src: url('fonts/HelveticaNeue-Bold.woff2') format('woff2');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Gotham Pro */
+@font-face {
+    font-family: 'Gotham Pro';
+    src: url('fonts/gothampro.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Gotham Pro';
+    src: url('fonts/gothampro_bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Gotham Pro';
+    src: url('fonts/gothampro_medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Gotham Pro';
+    src: url('fonts/gothampro_italic.ttf') format('truetype');
+    font-weight: 400;
+    font-style: italic;
+}
+
+@layer base {
+    :root {
+        --default-font-family: "Helvetica Neue", "Gotham Pro", sans-serif;
+    }
+    body {
+        @apply bg-white;
+    }
+}
+
+
+@layer utilities {
+    .display-1 {
+        @apply font-medium text-[2rem] md:text-[3rem] leading-tight;
+    }
+    .h1 {
+        @apply text-3xl leading-tight;
+    }
+    .h2 {
+        @apply text-2xl leading-tight;
+    }
+    .h3 {
+        @apply font-bold text-xl leading-tight;
+    }
+    .h4 {
+        @apply font-bold text-lg leading-tight;
+    }
+}
+
+@layer components {
+    .main {
+        @apply max-w-6xl w-full mx-auto px-3 py-5 flex-1;
+    }
+
+    .footer {
+        @apply mb-4 pt-6;
+    }
+    .footer .copyright {
+        @apply text-center text-sm font-bold text-gray-700;
+    }
+
+    .header {
+        @apply flex w-full max-w-6xl mx-auto px-3 py-5;
+    }
+
+    .menu {
+        @apply ml-auto ;
+    }
+
+    .nav {
+        @apply flex gap-3;
+    }
+
+    .nav-item {
+        @apply relative flex items-center justify-center ;
+    }
+
+    .nav-item.active .nav-item--link {
+        @apply bg-gray-200;
+    }
+
+    .nav-item--link, .nav-item--dropdown {
+        @apply size-10 hover:bg-gray-300/50 rounded-full flex items-center justify-center;
+    }
+
+    .nav-item--link .nav-notice--icon {
+        @apply absolute right-0.5 top-0.5 bg-red-500 rounded-full size-2;
+    }
+
+    .nav-item--dropdown {
+        @apply bg-green-600 hover:bg-slate-900 text-white cursor-pointer;
+    }
+
+    .courses {
+        @apply flex flex-wrap gap-8;
+    }
+
+    .courses-nav {
+        @apply flex gap-8 text-gray-700;
+    }
+
+    .courses-nav--item {
+        @apply text-xl font-medium hover:text-black cursor-pointer pb-1;
+    }
+
+    .courses-nav--item.active {
+        @apply border-b-1 text-black;
+    }
+
+    .courses-content {
+        @apply grid grid-cols-12 gap-8 md:gap-4 xl:gap-8;
+    }
+
+    .courses-card .card_body {
+        @apply p-4 min-h-[10.5rem] flex justify-between flex-col  border-1 border-gray-300 rounded-2xl ;
+    }
+
+    .courses-card.base-card .card_body{
+        @apply hover:bg-gray-100 cursor-pointer;
+    }
+
+    .courses-card .card_footer {
+        @apply px-2 flex items-center gap-2 py-3 h-16 cursor-pointer;
+    }
+    .courses-card .card_footer .icon {
+        @apply text-blue-600 ;
+    }
+    .courses-card .card_footer:hover .icon {
+        @apply text-gray-900;
+    }
+
+    .courses-card .card_body .title {
+        @apply flex justify-between gap-6 w-full;
+    }
+
+    .courses-card .card_body .empty {
+        @apply flex flex-col justify-center items-center gap-3 w-full h-full mt-8 font-bold;
+    }
+
+    .progress {
+        @apply mt-auto w-full flex flex-wrap gap-2;
+    }
+
+    .progress .progress-info {
+        @apply w-full flex justify-start;
+    }
+
+    .progress .progress-info__list {
+        @apply flex items-center gap-4 text-gray-700 w-full;
+    }
+
+    .progress .progress-info__list .progress-info__list--item {
+        @apply flex items-center gap-1 text-sm font-medium;
+    }
+
+    .progress .progress-completed {
+        @apply w-full;
+    }
+
+    .progress .progress-completed .progress-completed__list {
+        @apply flex gap-4 text-gray-700 w-full;
+    }
+    .progress .progress-completed .progress-completed__list .progress-completed__list--item {
+        @apply flex gap-1 items-center text-sm font-medium;
+    }
+
+    .progress-bar {
+        @apply relative h-3 w-full rounded-full;
+    }
+
+    .progress-bar .progress-bar-fill {
+        @apply h-full bg-gray-300 rounded-full w-full;
+    }
+
+    .progress-bar .progress-bar-fill .progress-bar-fill__bar {
+        @apply bg-blue-600 rounded-full h-full w-0;
+    }
+
+    .btn-back {
+        @apply flex items-center gap-3 cursor-pointer;
+    }
+    .btn-back:hover .btn-back__icon {
+        @apply bg-gray-700;
+    }
+    .btn-back .btn-back__icon {
+        @apply flex items-center justify-center size-12 rounded-full bg-black;
+    }
+    .btn-back .btn-back__text {
+        @apply text-lg font-medium mt-2 text-gray-700;
+    }
+
+    .program {
+        @apply flex flex-col gap-14 w-full;
+    }
+    .program .program-block {
+        @apply flex flex-col gap-6 w-full;
+    }
+    .program .program-item:first-child {
+        @apply border-t-1 border-gray-300
+    }
+    .program .program-item {
+        @apply flex flex-col border-b-1 border-gray-300;
+    }
+    .program .program-item .program-item__title {
+        @apply text-gray-700;
+    }
+    .program .program-item.active .program-item__body {
+        @apply grid;
+    }
+    .program .program-item.active .caret {
+        @apply rotate-180 tracking-tight;
+    }
+    .program-item__header {
+        @apply py-6 flex items-center justify-between cursor-pointer;
+    }
+    .program-item__title {
+        @apply font-bold flex ;
+    }
+    .program-item__sidebar {
+        @apply flex gap-4 items-center;
+    }
+    .program-item__body {
+        @apply grid-cols-2 md:grid-cols-3 gap-2 pb-8 hidden;
+    }
+    .lesson-card {
+        @apply flex flex-col gap-3 pb-4 cursor-pointer;
+    }
+    .lesson-card__overflow {
+        @apply text-gray-200/75;
+    }
+    .lesson-card:hover .lesson-card__overflow {
+        @apply text-white bg-black/75;
+    }
+    .lesson-card__image-block {
+        @apply relative aspect-16/9 overflow-hidden rounded-lg;
+    }
+    .lesson-card__overflow {
+        @apply absolute inset-0 bg-black/50 flex items-center justify-center z-0;
+    }
+    .lesson-card__duration {
+        @apply w-full absolute bottom-2 px-2 z-25;
+    }
+    .lesson-card__status {
+        @apply w-full absolute top-1 px-2 z-25 text-green-500;
+    }
+    .lesson-card__title {
+        @apply font-medium leading-tight text-gray-700 text-sm;
+    }
+    .lesson-card__pictures {
+        @apply flex items-center justify-center bg-blue-600 h-full;
+    }
+
+    .authorization-form {
+        @apply flex flex-col gap-12 md:px-14 px-8 pt-6 pb-15 max-w-xl mx-auto border-gray-300 rounded-4xl border-1 bg-white;
+    }
+    .authorization-form__header {
+        @apply text-center flex flex-col gap-12;
+    }
+    .authorization-form__body {
+        @apply flex flex-col gap-12;
+    }
+    .authorization-form__input-group {
+        @apply flex flex-col gap-6;
+    }
+
+    .form {
+        @apply flex flex-col gap-3;
+    }
+    .form-field {
+        @apply relative;
+    }
+    .input-field {
+        @apply relative;
+    }
+
+}

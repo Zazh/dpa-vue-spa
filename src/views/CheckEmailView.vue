@@ -1,0 +1,119 @@
+<template>
+  <AuthLayout>
+    <div class="authorization-form__header">
+      <h5 class="font-medium text-gray-700">Войдите или зарегистрируйтесь</h5>
+      <h1 class="h1 font-bold">Добро пожаловать</h1>
+    </div>
+
+
+    <form class="authorization-form__body" @submit.prevent="handleSubmit">
+      <div class="form">
+        <!-- Уведомление о реферальной ссылке (опционально) -->
+        <div v-if="hasReferralToken" class="mb-4">
+          <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <p class="text-sm text-blue-700">
+              <span>Вы приглашены на курс</span>
+            </p>
+          </div>
+        </div>
+        <div class="form-field">
+          <div class="input-field">
+            <input  type="email"
+                    id="email"
+                    v-model="email"
+                    required
+                    class="peer w-full px-4 pt-7 pb-3 font-medium text-sm bg-gray-100 rounded-2xl border-1 border-gray-200 focus:outline-none focus:border-gray-300 focus:text-black transition-all duration-200"
+                    placeholder=" "/>
+
+            <label  for="email"
+                    class="absolute left-4 top-1/2 font-medium -translate-y-1/2 text-sm text-gray-700
+                  peer-focus:top-4 peer-focus:text-xs
+                  peer-[:not(:placeholder-shown)]:top-4 peer-[:not(:placeholder-shown)]:text-xs
+                  transition-all duration-200 pointer-events-none">
+              Введите Email
+            </label>
+          </div>
+          <div v-if="error" class="pt-3">
+            <span class="text-sm text-red-500">{{ error }}</span>
+          </div>
+        </div>
+
+        <div class="mt-3">
+          <button
+              type="submit"
+              :disabled="loading"
+              class="w-full text-sm bg-black text-white font-medium cursor-pointer hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed rounded-full py-4">
+            {{ loading ? 'Проверка...' : 'Продолжить' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="authorization-form__footer">
+        <div class="text-center">
+          <Politics />
+        </div>
+      </div>
+    </form>
+  </AuthLayout>
+</template>
+
+<script setup>
+import { ref, onMounted, computed } from 'vue';
+import { useRouter } from 'vue-router';
+import { accountAPI } from '@/services/api';
+import AuthLayout from '@/layouts/AuthLayout.vue';
+import Politics from '@/components/ui/Politics.vue';
+import { usePageMeta } from '@/composables/usePageMeta';
+
+usePageMeta('Авторизуйтесь', 'Войдите в свой аккаунт для доступа к курсам');
+
+const router = useRouter();
+const email = ref('');
+const error = ref('');
+const loading = ref(false);
+
+// 🆕 Проверяем наличие реферального токена
+const hasReferralToken = computed(() => {
+  return !!localStorage.getItem('referral_token');
+});
+
+// 🆕 При монтировании компонента проверяем referral_token
+onMounted(() => {
+  const referralToken = localStorage.getItem('referral_token');
+
+  if (referralToken) {
+    console.log('✅ Обнаружен реферальный токен:', referralToken);
+    // Токен будет использован при регистрации или входе
+  }
+});
+
+const handleSubmit = async () => {
+  error.value = '';
+  loading.value = true;
+
+  try {
+    console.log('📧 Отправка email:', email.value); // Отладка
+    const response = await accountAPI.checkEmail(email.value);
+    console.log('✅ Успешный ответ:', response.data); // Отладка
+
+    sessionStorage.setItem('email', email.value);
+
+    if (response.data.exists) {
+      router.push({ name: 'Login' });
+    } else {
+      router.push({ name: 'Register' });
+    }
+  } catch (err) {
+    console.error('❌ Полная ошибка:', err); // Отладка
+    console.error('❌ Ответ сервера:', err.response); // Отладка
+    console.error('❌ Данные ошибки:', err.response?.data); // Отладка
+
+    error.value = err.response?.data?.error || 'Введите корректные данные Email';
+  } finally {
+    loading.value = false;
+  }
+};
+</script>
+
+<style scoped>
+</style>
