@@ -63,6 +63,12 @@ const routes = [
         component: () => import('@/views/CourseDetailView.vue'),
         meta: { requiresAuth: true }
     },
+    {
+        path: '/lessons/:id',
+        name: 'Lesson',
+        component: () => import('@/views/LessonView.vue'),
+        meta: { requiresAuth: true }
+    }
 ];
 
 const router = createRouter({

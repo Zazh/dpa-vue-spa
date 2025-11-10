@@ -72,4 +72,15 @@ export const groupsAPI = {
     joinGroup: (token) => api.post(`/groups/join/${token}/`),
 };
 
+export const lessonsAPI = {
+    // Получить урок по ID
+    getLesson: (id) => api.get(`/lessons/${id}/`),
+
+    // Обновить прогресс видео
+    updateVideoProgress: (id, data) => api.post(`/lessons/${id}/video-progress/`, data),
+
+    // Отметить урок как завершенный
+    completeLesson: (id) => api.post(`/lessons/${id}/complete/`),
+};
+
 export default api;

@@ -104,7 +104,7 @@
           <article
               v-if="enrichedMyCourses.length === 0"
               @click="handleTabChange('all')"
-              class="courses-card col-span-full md:col-span-6 lg:col-span-4 base-card cursor-pointer hover:shadow-lg transition-shadow">
+              class="courses-card col-span-full md:col-span-6 lg:col-span-4 base-card cursor-pointer transition-shadow">
             <div class="card_body">
               <div class="empty">
                 <div class="size-12 flex justify-center items-center bg-gray-300 rounded-md">
