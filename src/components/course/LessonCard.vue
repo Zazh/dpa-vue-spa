@@ -258,7 +258,7 @@ const handleLessonClick = () => {
   const routeNames = {
     'video': 'VideoLesson',
     'text': 'TextLesson',
-    // 'quiz': 'QuizLesson',      // Добавите позже
+    'quiz': 'QuizLesson',
     // 'assignment': 'AssignmentLesson'  // Добавите позже
   };
 

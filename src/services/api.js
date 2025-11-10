@@ -83,4 +83,28 @@ export const lessonsAPI = {
     completeLesson: (id) => api.post(`/lessons/${id}/complete/`),
 };
 
+export const quizzesAPI = {
+    // Начать попытку
+    startQuiz(quizId) {
+        return api.post(`/quizzes/${quizId}/start/`);
+    },
+
+    // Получить все попытки пользователя
+    getAttempts() {
+        return api.get('/quizzes/attempts/');
+    },
+
+    // Получить детали попытки
+    getAttempt(attemptId) {
+        return api.get(`/quizzes/attempts/${attemptId}/`);
+    },
+
+    // Отправить ответы
+    submitAnswers(attemptId, answers) {
+        return api.post(`/quizzes/attempts/${attemptId}/submit/`, { answers });
+    }
+};
+
+
+
 export default api;
