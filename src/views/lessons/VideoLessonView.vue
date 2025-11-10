@@ -158,10 +158,10 @@
 <script setup>
 import { ref, onMounted, onUnmounted, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { lessonsAPI } from '@/services/api';
+import { lessonsAPI } from '@/services/api.js';
 import MainLayout from '@/layouts/MainLayout.vue';
 import Player from '@vimeo/player';
-import { usePageMeta } from '@/composables/usePageMeta';
+import { usePageMeta } from '@/composables/usePageMeta.js';
 
 const route = useRoute();
 const router = useRouter();

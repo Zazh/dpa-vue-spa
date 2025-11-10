@@ -9,6 +9,9 @@ import PasswordResetConfirmView from '@/views/PasswordResetConfirmView.vue';
 import DashboardView from '@/views/DashboardView.vue';
 import JoinGroupView from '@/views/JoinGroupView.vue';
 
+import VideoLessonView from '@/views/lessons/VideoLessonView.vue'
+import TextLessonView from '@/views/lessons/TextLessonView.vue'
+
 
 const routes = [
     {
@@ -64,11 +67,17 @@ const routes = [
         meta: { requiresAuth: true }
     },
     {
-        path: '/lessons/:id',
-        name: 'Lesson',
-        component: () => import('@/views/LessonView.vue'),
+        path: '/lessons/video/:id',
+        name: 'VideoLesson',
+        component: VideoLessonView,
         meta: { requiresAuth: true }
-    }
+    },
+    {
+        path: '/lessons/text/:id',
+        name: 'TextLesson',
+        component: TextLessonView,
+        meta: { requiresAuth: true }
+    },
 ];
 
 const router = createRouter({

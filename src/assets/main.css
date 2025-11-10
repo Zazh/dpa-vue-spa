@@ -88,10 +88,10 @@
         @apply font-medium text-[2rem] md:text-[3rem] leading-tight;
     }
     .h1 {
-        @apply text-3xl leading-tight;
+        @apply text-4xl lg:text-3xl leading-tight;
     }
     .h2 {
-        @apply text-2xl leading-tight;
+        @apply text-3xl lg:text-2xl leading-tight;
     }
     .h3 {
         @apply font-bold text-xl leading-tight;
@@ -240,7 +240,7 @@
         @apply flex items-center justify-center size-12 rounded-full bg-black;
     }
     .btn-back .btn-back__text {
-        @apply text-lg font-medium mt-2 text-gray-700;
+        @apply text-lg font-medium mt-2 text-gray-700 hidden lg:block;
     }
 
     .program {

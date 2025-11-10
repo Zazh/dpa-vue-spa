@@ -254,21 +254,25 @@ const handleLessonClick = () => {
     isCompleted: isCompleted.value
   });
 
-  // Проверяем существует ли маршрут Lesson
-  try {
-    const lessonRoute = router.resolve({ name: 'Lesson', params: { id: lessonData.value.id } });
+  // Маппинг типов уроков на роуты
+  const routeNames = {
+    'video': 'VideoLesson',
+    'text': 'TextLesson',
+    // 'quiz': 'QuizLesson',      // Добавите позже
+    // 'assignment': 'AssignmentLesson'  // Добавите позже
+  };
 
-    if (lessonRoute.name === 'Lesson') {
-      router.push({
-        name: 'Lesson',
-        params: { id: lessonData.value.id }
-      });
-    } else {
-      throw new Error('Route not found');
-    }
-  } catch (e) {
-    console.log('⚠️ Страница урока еще не создана');
-    alert(`Открытие урока: "${lessonTitle.value}"\n\nТип: ${lessonData.value.type_display}\nID: ${lessonData.value.id}\n\n📝 Страница урока в разработке...`);
+  const routeName = routeNames[lessonType.value];
+
+  if (routeName) {
+    console.log(`✅ Переход на ${routeName}:`, lessonData.value.id);
+    router.push({
+      name: routeName,
+      params: { id: lessonData.value.id }
+    });
+  } else {
+    console.warn(`⚠️ Тип урока "${lessonType.value}" еще не реализован`);
+    alert(`Урок: "${lessonTitle.value}"\n\nТип: ${lessonData.value.type_display}\n\n📝 Страница для этого типа урока в разработке...`);
   }
 };
 
