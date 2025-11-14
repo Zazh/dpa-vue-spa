@@ -259,7 +259,7 @@ const handleLessonClick = () => {
     'video': 'VideoLesson',
     'text': 'TextLesson',
     'quiz': 'QuizLesson',
-    // 'assignment': 'AssignmentLesson'  // Добавите позже
+    'assignment': 'AssignmentLesson'  // Добавите позже
   };
 
   const routeName = routeNames[lessonType.value];

@@ -12,6 +12,8 @@ import JoinGroupView from '@/views/JoinGroupView.vue';
 import VideoLessonView from '@/views/lessons/VideoLessonView.vue'
 import TextLessonView from '@/views/lessons/TextLessonView.vue'
 import QuizLessonView from '@/views/lessons/QuizLessonView.vue'
+import AssignmentLessonView from '@/views/lessons/AssignmentLessonView.vue'
+
 
 
 
@@ -96,6 +98,12 @@ const routes = [
         path: '/lessons/quiz/:id',
         name: 'QuizLesson',
         component: QuizLessonView,
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/lessons/assignment/:id',
+        name: 'AssignmentLesson',
+        component: AssignmentLessonView,
         meta: { requiresAuth: true }
     },
 ];

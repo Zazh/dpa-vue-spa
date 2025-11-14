@@ -105,6 +105,30 @@ export const quizzesAPI = {
     }
 };
 
+export const assignmentsAPI = {
+    // Сдать задание
+    submitAssignment(assignmentId, formData) {
+        return api.post(`/assignments/${assignmentId}/submit/`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+    },
 
+    // Получить все свои сдачи
+    getMySubmissions() {
+        return api.get('/assignments/my-submissions/');
+    },
+
+    // Получить детали сдачи
+    getSubmission(submissionId) {
+        return api.get(`/assignments/submissions/${submissionId}/`);
+    },
+
+    // Добавить комментарий
+    addComment(submissionId, message) {
+        return api.post(`/assignments/submissions/${submissionId}/comment/`, { message });
+    }
+};
 
 export default api;

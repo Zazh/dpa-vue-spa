@@ -107,6 +107,8 @@ import MainLayout from '@/layouts/MainLayout.vue';
 import ModuleItem from '@/components/course/ModuleItem.vue';
 import { usePageMeta } from '@/composables/usePageMeta';
 
+usePageMeta('Детали уроков', 'Личный кабинет');
+
 const router = useRouter();
 const route = useRoute();
 
@@ -127,12 +129,6 @@ const progressPercentage = computed(() => {
 const totalLessons = computed(() => {
   return modules.value.reduce((sum, module) => sum + module.total_lessons, 0);
 });
-
-// Мета-данные страницы
-usePageMeta(
-    computed(() => courseData.value?.title || 'Курс'),
-    'Детали курса'
-);
 
 // Загрузка данных
 onMounted(async () => {
