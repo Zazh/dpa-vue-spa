@@ -1,6 +1,11 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8007/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8007/api';
+
+// Проверка что переменная задана (только в dev режиме)
+if (import.meta.env.DEV && !import.meta.env.VITE_API_BASE_URL) {
+    console.warn('⚠️ VITE_API_BASE_URL не задан! Используется значение по умолчанию.');
+}
 
 const api = axios.create({
     baseURL: API_BASE_URL,

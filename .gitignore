@@ -2,3 +2,7 @@ node_modules/
 pnpm-lock.yaml
 .idea
 /dev_datas
+
+.env
+.env.development
+.env.production
