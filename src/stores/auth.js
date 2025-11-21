@@ -1,50 +1,64 @@
 // src/stores/auth.js
-import { defineStore } from 'pinia'
-import {
-    login as apiLogin,
-    profile as apiProfile,
-    setTokens,
-    restoreTokensFromStorage,
-    clearTokens
-} from '@/services/api'
+import { defineStore } from 'pinia';
+import { accountAPI } from '@/services/api';
 
 export const useAuthStore = defineStore('auth', {
     state: () => ({
         user: null,
         initialized: false
     }),
+
     getters: {
         isAuthed: (s) => !!s.user
     },
+
     actions: {
         async ensureAuth() {
-            // Не трогаем сервер, если токена нет — избежим лишнего 401
-            const { access } = restoreTokensFromStorage()
-            if (!access) {
-                this.initialized = true
-                return
+            // Проверяем есть ли токен
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                this.initialized = true;
+                return;
             }
-            const me = await apiProfile()
-            if (me.ok) this.user = me.data
-            else clearTokens() // токен неисправен — чистим
-            this.initialized = true
+
+            try {
+                const res = await accountAPI.getProfile();
+                this.user = res.data;
+            } catch (err) {
+                // Токен невалидный - очищаем
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('refresh_token');
+                this.user = null;
+            }
+
+            this.initialized = true;
         },
 
         async login(email, password) {
-            const res = await apiLogin(email, password)
-            if (!res.ok) return { ok: false, data: res.data }
+            try {
+                const res = await accountAPI.login(email, password);
 
-            // Бэкенд отдал JWT и user
-            const { access, refresh, user } = res.data || {}
-            setTokens({ access, refresh })
-            this.user = user || null
-            return { ok: true }
+                // Сохраняем токены
+                localStorage.setItem('access_token', res.data.access);
+                localStorage.setItem('refresh_token', res.data.refresh);
+
+                // Сохраняем пользователя
+                this.user = res.data.user || null;
+
+                return { ok: true, data: res.data };
+            } catch (err) {
+                return {
+                    ok: false,
+                    data: err.response?.data
+                };
+            }
         },
 
         logout() {
-            this.user = null
-            clearTokens()
-            // если добавишь серверный logout — дерни его тут
+            this.user = null;
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            sessionStorage.removeItem('email');
         }
     }
-})
+});
