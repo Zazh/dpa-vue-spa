@@ -100,16 +100,17 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { accountAPI } from '@/services/api';
+import { useAuthStore } from '@/stores/auth'; // ← ИЗМЕНЕНО
 
 const router = useRouter();
+const authStore = useAuthStore(); // ← ДОБАВЛЕНО
 
 // Состояние меню
 const isMenuOpen = ref(false);
 const profileRef = ref(null);
 
-// Данные пользователя
-const user = ref(null);
+// ✅ ИЗМЕНЕНО: Данные пользователя из Store
+const user = computed(() => authStore.user);
 
 // Computed: Имя пользователя
 const userName = computed(() => {
@@ -122,16 +123,14 @@ const userEmail = computed(() => {
   return user.value?.email || '';
 });
 
-// Computed: Первая буква (вместо "A")
+// Computed: Первая буква
 const userInitial = computed(() => {
   if (!user.value) return 'A';
 
-  // Если есть имя - берем первую букву имени
   if (user.value.first_name) {
     return user.value.first_name.charAt(0).toUpperCase();
   }
 
-  // Если имени нет - берем первую букву email
   if (user.value.email) {
     return user.value.email.charAt(0).toUpperCase();
   }
@@ -151,16 +150,7 @@ const handleClickOutside = (event) => {
   }
 };
 
-// Загрузка профиля
-const loadProfile = async () => {
-  try {
-    const response = await accountAPI.getProfile();
-    user.value = response.data;
-    console.log('👤 Профиль загружен:', user.value);
-  } catch (err) {
-    console.error('❌ Ошибка загрузки профиля:', err);
-  }
-};
+// ❌ УБРАЛИ: loadProfile() - данные уже в Store
 
 // Переход в настройки
 const goToSettings = () => {
@@ -169,19 +159,17 @@ const goToSettings = () => {
   // TODO: router.push({ name: 'Settings' });
 };
 
-// Выход
-const handleLogout = () => {
+// ✅ ИЗМЕНЕНО: Выход через Store
+const handleLogout = async () => {
   console.log('👋 Выход из системы');
-  localStorage.removeItem('access_token');
-  localStorage.removeItem('refresh_token');
-  sessionStorage.removeItem('email');
   isMenuOpen.value = false;
+  await authStore.logout(); // ← Отправит на backend + очистит локально
   router.push({ name: 'CheckEmail' });
 };
 
 // Lifecycle hooks
 onMounted(() => {
-  loadProfile();
+  // ❌ УБРАЛИ: loadProfile() - данные уже в Store из App.vue
   document.addEventListener('click', handleClickOutside);
 });
 

@@ -130,45 +130,23 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { computed } from 'vue';
 import { useRouter } from 'vue-router';
-import { accountAPI } from '@/services/api.js';
+import { useAuthStore } from '@/stores/auth'; // ← ИЗМЕНЕНО
 import MainLayout from '@/layouts/MainLayout.vue';
 import { usePageMeta } from '@/composables/usePageMeta.js';
 
 usePageMeta('Dashboard', 'Личный кабинет');
 
 const router = useRouter();
-const user = ref(null);
-const loading = ref(true);
-const error = ref('');
+const authStore = useAuthStore(); // ← ДОБАВЛЕНО
 
-onMounted(async () => {
-  await loadProfile();
-});
+// ✅ ИЗМЕНЕНО: используем данные из Store
+const user = computed(() => authStore.user);
 
-const loadProfile = async () => {
-  try {
-    const response = await accountAPI.getProfile();
-    user.value = response.data;
-  } catch (err) {
-    if (err.response?.status === 401) {
-      // Токен невалиден - перенаправляем на вход
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('refresh_token');
-      router.push({ name: 'CheckEmail' });
-    } else {
-      error.value = 'Ошибка при загрузке профиля';
-    }
-  } finally {
-    loading.value = false;
-  }
-};
-
-const handleLogout = () => {
-  localStorage.removeItem('access_token');
-  localStorage.removeItem('refresh_token');
-  sessionStorage.removeItem('email');
+// ✅ ИЗМЕНЕНО: logout через Store
+const handleLogout = async () => {
+  await authStore.logout(); // ← Теперь async и через Store
   router.push({ name: 'CheckEmail' });
 };
 

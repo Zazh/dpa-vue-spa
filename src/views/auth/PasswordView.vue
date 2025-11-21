@@ -25,8 +25,8 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth.js'
-import { useAuthFlowStore } from '@/stores/authFlow.js'
+import { useAuthStore } from '@/stores/auth'
+import { useAuthFlowStore } from '@/stores/authFlow'
 
 const route = useRoute()
 const router = useRouter()
@@ -39,14 +39,23 @@ const loading = ref(false)
 const error = ref('')
 
 function changeEmail() {
-  router.push({ name: 'auth-email', query: { email: email.value } })
+  // ✅ ИСПРАВЛЕНО: правильное имя роута
+  router.push({ name: 'CheckEmail' })
 }
 
 async function onLogin() {
-  loading.value = true; error.value = ''
-  const { ok, data } = await auth.login(email.value, password.value).catch(() => ({ ok:false }))
+  loading.value = true
+  error.value = ''
+
+  const { ok, data } = await auth.login(email.value, password.value).catch(() => ({ ok: false }))
+
   loading.value = false
-  if (ok) router.push({ name: 'dashboard' })
-  else error.value = data?.detail || 'Неверный email или пароль'
+
+  // ✅ ИСПРАВЛЕНО: правильное имя роута с заглавной буквы
+  if (ok) {
+    router.push({ name: 'Dashboard' })
+  } else {
+    error.value = data?.detail || 'Неверный email или пароль'
+  }
 }
 </script>

@@ -1,4 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
+
+// Auth views
 import CheckEmailView from '@/views/auth/CheckEmailView.vue';
 import LoginView from '@/views/auth/LoginView.vue';
 import PasswordView from '@/views/auth/PasswordView.vue';
@@ -7,10 +9,13 @@ import EmailSentView from '@/views/auth/EmailSentView.vue';
 import SetPasswordView from '@/views/auth/SetPasswordView.vue';
 import PasswordResetRequestView from '@/views/auth/PasswordResetRequestView.vue';
 import PasswordResetConfirmView from '@/views/auth/PasswordResetConfirmView.vue';
+
+// Main views
 import DashboardView from '@/views/courses/DashboardView.vue';
 import ProfileView from '@/views/profile/ProfileView.vue';
 import JoinGroupView from '@/views/groups/JoinGroupView.vue';
 
+// Lesson views
 import VideoLessonView from '@/views/lessons/VideoLessonView.vue';
 import TextLessonView from '@/views/lessons/TextLessonView.vue';
 import QuizLessonView from '@/views/lessons/QuizLessonView.vue';
@@ -141,17 +146,24 @@ const router = createRouter({
     }
 });
 
-// Защита маршрутов
+// ✅ ИСПРАВЛЕНО: Guard использует localStorage напрямую
 router.beforeEach((to, from, next) => {
+    // Простая проверка по токену
     const isAuthenticated = !!localStorage.getItem('access_token');
 
     if (to.meta.requiresAuth && !isAuthenticated) {
+        console.log('🚫 Доступ запрещен, перенаправляем на CheckEmail');
         next({ name: 'CheckEmail' });
-    } else if (to.name === 'CheckEmail' && isAuthenticated) {
-        next({ name: 'Dashboard' });
-    } else {
-        next();
+        return;
     }
+
+    if (to.name === 'CheckEmail' && isAuthenticated) {
+        console.log('✅ Уже авторизован, перенаправляем в Dashboard');
+        next({ name: 'Dashboard' });
+        return;
+    }
+
+    next();
 });
 
 export default router;

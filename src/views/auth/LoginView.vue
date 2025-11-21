@@ -65,15 +65,16 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { accountAPI } from '@/services/api.js';
+import { groupsAPI } from '@/services/api.js';
+import { useAuthStore } from '@/stores/auth'; // ← ДОБАВЛЕНО
 import AuthLayout from '@/layouts/AuthLayout.vue';
 import { usePageMeta } from '@/composables/usePageMeta.js';
-import { groupsAPI } from '@/services/api.js';
-
 
 usePageMeta('Введите пароль от существующего аккаунта', 'Войдите в свой пароль для доступа к курсам');
 
 const router = useRouter();
+const authStore = useAuthStore(); // ← ДОБАВЛЕНО
+
 const email = ref('');
 const password = ref('');
 const error = ref('');
@@ -102,23 +103,26 @@ const handleLogin = async () => {
   loading.value = true;
 
   try {
-    const response = await accountAPI.login(email.value, password.value);
+    // ✅ ИЗМЕНЕНО: используем authStore вместо accountAPI
+    const result = await authStore.login(email.value, password.value);
 
-    localStorage.setItem('access_token', response.data.access);
-    localStorage.setItem('refresh_token', response.data.refresh);
+    if (!result.ok) {
+      error.value = result.data?.error || 'Введите корректные данные';
+      loading.value = false;
+      return;
+    }
 
-    // 🆕 ДОБАВЬТЕ: Проверяем наличие referral_token
+    // Store уже сохранил токены и пользователя!
+
+    // Проверяем наличие referral_token
     const referralToken = localStorage.getItem('referral_token');
 
     if (referralToken) {
-      // Есть referral_token → автоматически присоединяем к группе
       try {
         await groupsAPI.joinGroup(referralToken);
-        // Успешно присоединились
         localStorage.removeItem('referral_token');
       } catch (joinErr) {
         console.error('Ошибка присоединения к группе:', joinErr);
-        // Не блокируем вход, даже если не получилось присоединиться
         localStorage.removeItem('referral_token');
       }
     }
@@ -126,11 +130,8 @@ const handleLogin = async () => {
     router.push({ name: 'Dashboard' });
 
   } catch (err) {
-    if (err.response?.status === 401) {
-      error.value = err.response.data.error || 'Введите корректные данные';
-    } else {
-      error.value = 'Ошибка при входе в систему';
-    }
+    console.error('Unexpected error:', err);
+    error.value = 'Ошибка при входе в систему';
   } finally {
     loading.value = false;
   }
@@ -141,7 +142,6 @@ const goBack = () => {
   router.push({ name: 'CheckEmail' });
 };
 </script>
-
 <style scoped>
 
 </style>

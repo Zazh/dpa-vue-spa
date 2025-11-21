@@ -147,6 +147,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { accountAPI } from '@/services/api.js';
+import { useAuthStore } from '@/stores/auth'; // ← ДОБАВЛЕНО
 import AuthLayout from "@/layouts/AuthLayout.vue";
 import { usePageMeta } from '@/composables/usePageMeta.js';
 
@@ -154,6 +155,7 @@ usePageMeta('Установка пароля', 'Создайте надежны�
 
 const router = useRouter();
 const route = useRoute();
+const authStore = useAuthStore(); // ← ДОБАВЛЕНО
 
 const password = ref('');
 const password_confirm = ref('');
@@ -185,7 +187,6 @@ const passwordValidation = computed(() => {
     minLength: pwd.length >= 8,
     hasLowerCase: /[a-z]/.test(pwd),
     hasUpperCase: /[A-Z]/.test(pwd),
-    // Проверка совпадения: оба поля заполнены и совпадают
     passwordsMatch: pwd.length > 0 && pwdConfirm.length > 0 && pwd === pwdConfirm
   };
 });
@@ -202,7 +203,6 @@ const handleSetPassword = async () => {
   error.value = '';
   success.value = '';
 
-  // Проверка совпадения паролей
   if (password.value !== password_confirm.value) {
     error.value = 'Пароли не совпадают';
     return;
@@ -211,38 +211,41 @@ const handleSetPassword = async () => {
   loading.value = true;
 
   try {
-    // 🆕 ДОБАВЬТЕ: Получаем referral_token из localStorage если есть
     const referralToken = localStorage.getItem('referral_token');
 
-    // Шаг 1: Устанавливаем пароль (С referral_token если есть)
+    // Шаг 1: Устанавливаем пароль
     const setPasswordResponse = await accountAPI.setPassword(
         token.value,
         password.value,
         password_confirm.value,
-        referralToken  // 🆕 ДОБАВЬТЕ: Передаем referral_token
+        referralToken
     );
 
     userEmail.value = setPasswordResponse.data.email;
     success.value = 'Пароль установлен! Выполняется вход в систему...';
 
-    // 🆕 ДОБАВЬТЕ: Очищаем referral_token после использования
     localStorage.removeItem('referral_token');
 
-    // Шаг 2: Автоматически авторизуем пользователя
+    // Шаг 2: ✅ ИЗМЕНЕНО - используем authStore
     try {
-      const loginResponse = await accountAPI.login(userEmail.value, password.value);
+      const result = await authStore.login(userEmail.value, password.value);
 
-      // Сохраняем токены
-      localStorage.setItem('access_token', loginResponse.data.access);
-      localStorage.setItem('refresh_token', loginResponse.data.refresh);
-
-      // Переходим на dashboard
-      setTimeout(() => {
-        router.push({ name: 'Dashboard' });
-      }, 1000);
+      if (result.ok) {
+        // Успешный вход через Store
+        setTimeout(() => {
+          router.push({ name: 'Dashboard' });
+        }, 1000);
+      } else {
+        // Ошибка входа - перенаправляем на Login
+        success.value = 'Пароль установлен! Переход на страницу входа...';
+        setTimeout(() => {
+          sessionStorage.setItem('email', userEmail.value);
+          router.push({ name: 'Login' });
+        }, 2000);
+      }
 
     } catch (loginErr) {
-      // Если автоматический вход не удался, перенаправляем на страницу входа
+      // Непредвиденная ошибка - перенаправляем на Login
       success.value = 'Пароль установлен! Переход на страницу входа...';
       setTimeout(() => {
         sessionStorage.setItem('email', userEmail.value);

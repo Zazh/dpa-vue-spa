@@ -1,5 +1,4 @@
 import axios from 'axios';
-import router from '@/router';
 
 const API_BASE_URL = 'http://localhost:8007/api';
 
@@ -83,7 +82,8 @@ api.interceptors.response.use(
 
             if (!refreshToken) {
                 localStorage.removeItem('access_token');
-                router.push({ name: 'CheckEmail' }); // ← ЧЕРЕЗ ROUTER
+                // ✅ ИСПРАВЛЕНО: используем window.location вместо router
+                window.location.href = '/';
                 return Promise.reject(error);
             }
 
@@ -104,7 +104,8 @@ api.interceptors.response.use(
                 processQueue(refreshError, null);
                 localStorage.removeItem('access_token');
                 localStorage.removeItem('refresh_token');
-                router.push({ name: 'CheckEmail' }); // ← ЧЕРЕЗ ROUTER
+                // ✅ ИСПРАВЛЕНО: используем window.location вместо router
+                window.location.href = '/';
                 return Promise.reject(refreshError);
             } finally {
                 isRefreshing = false;
@@ -135,6 +136,8 @@ export const accountAPI = {
         api.post('/account/password-reset/confirm/', { token, password, password_confirm }),
     getProfile: () => api.get('/account/profile/'),
     updateProfile: (data) => api.patch('/account/profile/', data),
+    // ✅ ДОБАВЛЕНО: logout на backend
+    logout: (refreshToken) => api.post('/account/logout/', { refresh: refreshToken }),
 };
 
 export const coursesAPI = {

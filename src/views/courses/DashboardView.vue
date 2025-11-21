@@ -147,9 +147,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { accountAPI, coursesAPI } from '@/services/api.js';
+import { coursesAPI } from '@/services/api.js'; // ← убрали accountAPI
+import { useAuthStore } from '@/stores/auth'; // ← ДОБАВЛЕНО
 import MainLayout from '@/layouts/MainLayout.vue';
 import CourseCard from '@/components/ui/CourseCard.vue';
 import { usePageMeta } from '@/composables/usePageMeta.js';
@@ -158,10 +159,12 @@ usePageMeta('Dashboard', 'Личный кабинет');
 
 const router = useRouter();
 const route = useRoute();
+const authStore = useAuthStore(); // ← ДОБАВЛЕНО
 
-const user = ref(null);
-const loading = ref(true);
-const error = ref('');
+// ✅ ИЗМЕНЕНО: используем данные из Store
+const user = computed(() => authStore.user);
+
+// ❌ УБРАЛИ: loading и error для профиля (не нужны)
 
 // Курсы
 const activeTab = ref('all');
@@ -170,7 +173,6 @@ const myCourses = ref([]);
 const coursesLoading = ref(true);
 const coursesError = ref('');
 
-// 🆕 ДОБАВЬТЕ: Прогресс по курсам с деталями
 const courseProgressDetails = ref({});
 
 // Уведомления о присоединении
@@ -193,7 +195,6 @@ const greeting = computed(() => {
   }
 });
 
-// 🆕 ДОБАВЬТЕ: Обогащенные курсы с деталями прогресса
 // Обогащенные курсы с деталями прогресса
 const enrichedMyCourses = computed(() => {
   console.log('🔄 Обогащение курсов данными о блокировке...');
@@ -215,7 +216,7 @@ const enrichedMyCourses = computed(() => {
     const enrichedCourse = {
       ...course,
       nextLockedLesson: nextLockedLesson,
-      has_access: !nextLockedLesson // Если нет заблокированного урока - есть доступ
+      has_access: !nextLockedLesson
     };
 
     console.log(`✅ Обогащенный курс ${courseId}:`, {
@@ -227,7 +228,7 @@ const enrichedMyCourses = computed(() => {
   });
 });
 
-// 🆕 ДОБАВЬТЕ: Функция поиска следующего заблокированного урока
+// Функция поиска следующего заблокированного урока
 const findNextLockedLesson = (progressDetail) => {
   console.log('🔍 Поиск заблокированного урока в прогрессе:', progressDetail);
 
@@ -236,7 +237,6 @@ const findNextLockedLesson = (progressDetail) => {
     return null;
   }
 
-  // Ищем ПЕРВЫЙ незавершенный урок
   for (const module of progressDetail.modules) {
     console.log(`📦 Модуль: ${module.title}`);
 
@@ -245,16 +245,13 @@ const findNextLockedLesson = (progressDetail) => {
       console.log(`     - is_completed: ${lessonProgress.is_completed}`);
       console.log(`     - is_available: ${lessonProgress.is_available}`);
 
-      // Пропускаем завершенные уроки
       if (lessonProgress.is_completed) {
         console.log(`     ✓ Урок завершен, пропускаем`);
         continue;
       }
 
-      // Первый незавершенный урок
       console.log(`     → Это первый незавершенный урок`);
 
-      // Если урок НЕДОСТУПЕН - это заблокированный урок
       if (!lessonProgress.is_available) {
         console.log(`  🔒 ЗАБЛОКИРОВАННЫЙ УРОК:`, {
           id: lessonProgress.lesson.id,
@@ -271,13 +268,12 @@ const findNextLockedLesson = (progressDetail) => {
         };
       }
 
-      // Если урок ДОСТУПЕН - НЕ заблокирован, можно продолжать
       console.log(`     ✅ Урок доступен, НЕ заблокирован`);
       return null;
     }
   }
 
-  console.log('✅ Заблокированных уроков не найдено (все доступны или завершены)');
+  console.log('✅ Заблокированных уроков не найдено');
   return null;
 };
 
@@ -303,26 +299,11 @@ onMounted(async () => {
     }, 10000);
   }
 
-  await loadProfile();
+  // ❌ УБРАЛИ: await loadProfile() - данные уже в Store
   await loadCourses();
 });
 
-const loadProfile = async () => {
-  try {
-    const response = await accountAPI.getProfile();
-    user.value = response.data;
-  } catch (err) {
-    if (err.response?.status === 401) {
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('refresh_token');
-      router.push({ name: 'CheckEmail' });
-    } else {
-      error.value = 'Ошибка при загрузке профиля';
-    }
-  } finally {
-    loading.value = false;
-  }
-};
+// ❌ УБРАЛИ: функцию loadProfile() полностью
 
 const loadCourses = async () => {
   coursesLoading.value = true;
@@ -331,18 +312,14 @@ const loadCourses = async () => {
   try {
     console.log('📚 Начало загрузки курсов...');
 
-    // Загружаем все курсы
     const allCoursesResponse = await coursesAPI.getAllCourses();
     allCourses.value = allCoursesResponse.data;
 
-    // Загружаем мои курсы
     const myCoursesResponse = await coursesAPI.getMyCourses();
     myCourses.value = myCoursesResponse.data;
 
-    // 🆕 ДОБАВЬТЕ: Загружаем детальный прогресс для каждого моего курса
     await loadCourseProgressDetails();
 
-    // Определяем активную вкладку
     if (myCourses.value.length === 0) {
       activeTab.value = 'all';
     } else {
@@ -354,20 +331,15 @@ const loadCourses = async () => {
 
     if (err.response?.status === 404) {
       coursesError.value = 'Эндпоинты не найдены. Проверьте URL в Django';
-    } else if (err.response?.status === 401) {
-      coursesError.value = 'Ошибка авторизации';
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('refresh_token');
-      router.push({ name: 'CheckEmail' });
     } else {
       coursesError.value = err.response?.data?.detail || 'Не удалось загрузить курсы';
     }
+    // ✅ УПРОСТИЛИ: убрали обработку 401 - interceptor сам перенаправит
   } finally {
     coursesLoading.value = false;
   }
 };
 
-// 🆕 ДОБАВЬТЕ: Загрузка детального прогресса
 const loadCourseProgressDetails = async () => {
   console.log('🔍 Загрузка детального прогресса...');
 
