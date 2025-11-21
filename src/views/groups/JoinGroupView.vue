@@ -14,9 +14,9 @@
 <script setup>
 import { onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { groupsAPI } from '@/services/api';
+import { groupsAPI } from '@/services/api.js';
 import AuthLayout from '@/layouts/AuthLayout.vue';
-import { usePageMeta } from '@/composables/usePageMeta';
+import { usePageMeta } from '@/composables/usePageMeta.js';
 
 usePageMeta('Приглашение в группу', 'Обработка приглашения');
 

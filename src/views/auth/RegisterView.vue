@@ -199,9 +199,9 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
-import { accountAPI } from '@/services/api';
+import { accountAPI } from '@/services/api.js';
 import AuthLayout from '@/layouts/AuthLayout.vue';
-import { usePageMeta } from '@/composables/usePageMeta';
+import { usePageMeta } from '@/composables/usePageMeta.js';
 import Politics from "@/components/ui/Politics.vue";
 
 usePageMeta('Регистрация', 'Завершите регистрацию для доступа к платформе');

@@ -65,10 +65,10 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { accountAPI } from '@/services/api';
+import { accountAPI } from '@/services/api.js';
 import AuthLayout from '@/layouts/AuthLayout.vue';
-import { usePageMeta } from '@/composables/usePageMeta';
-import { groupsAPI } from '@/services/api';
+import { usePageMeta } from '@/composables/usePageMeta.js';
+import { groupsAPI } from '@/services/api.js';
 
 
 usePageMeta('Введите пароль от существующего аккаунта', 'Войдите в свой пароль для доступа к курсам');

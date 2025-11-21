@@ -102,10 +102,10 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { coursesAPI } from '@/services/api';
+import { coursesAPI } from '@/services/api.js';
 import MainLayout from '@/layouts/MainLayout.vue';
 import ModuleItem from '@/components/course/ModuleItem.vue';
-import { usePageMeta } from '@/composables/usePageMeta';
+import { usePageMeta } from '@/composables/usePageMeta.js';
 
 usePageMeta('Детали уроков', 'Личный кабинет');
 

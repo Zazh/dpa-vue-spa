@@ -1,17 +1,17 @@
 <template>
   <AuthLayout>
     <div class="authorization-form__header">
-      <h5 class="font-medium text-gray-700">Завершите регистрацию</h5>
-      <h1 class="h1 font-bold">Придумайте пароль</h1>
+      <h5 class="font-medium text-gray-700">Восстановление доступа</h5>
+      <h1 class="h1 font-bold">Придумайте новый пароль</h1>
     </div>
 
-    <div v-if="!tokenValid" class="error">
+    <div v-if="!tokenValid">
       <div class="p-3 bg-red-50 border border-red-200 rounded-lg">
         <span class="text-sm text-red-600">{{ errorMessage }}</span>
       </div>
     </div>
 
-    <form class="authorization-form__body" v-else @submit.prevent="handleSetPassword">
+    <form class="authorization-form__body" v-else @submit.prevent="handleResetPassword">
       <div class="form">
         <!-- Первое поле пароля -->
         <div class="form-field">
@@ -30,7 +30,7 @@
                     peer-focus:top-4 peer-focus:text-xs
                     peer-[:not(:placeholder-shown)]:top-4 peer-[:not(:placeholder-shown)]:text-xs
                     transition-all duration-200 pointer-events-none">
-              Введите пароль
+              Введите новый пароль
             </label>
 
             <button type="button"
@@ -65,7 +65,7 @@
                     peer-focus:top-4 peer-focus:text-xs
                     peer-[:not(:placeholder-shown)]:top-4 peer-[:not(:placeholder-shown)]:text-xs
                     transition-all duration-200 pointer-events-none">
-              Повторите пароль
+              Повторите новый пароль
             </label>
 
             <button type="button"
@@ -136,7 +136,7 @@
 
       <div>
         <button type="submit" :disabled="loading || !isPasswordValid" class="w-full text-sm bg-black text-white font-medium cursor-pointer hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed rounded-full py-4">
-          {{ loading ? 'Сохранение...' : 'Продолжить' }}
+          {{ loading ? 'Сохранение...' : 'Изменить пароль' }}
         </button>
       </div>
     </form>
@@ -146,11 +146,11 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { accountAPI } from '@/services/api';
+import { accountAPI } from '@/services/api.js';
 import AuthLayout from "@/layouts/AuthLayout.vue";
-import { usePageMeta } from '@/composables/usePageMeta';
+import { usePageMeta } from '@/composables/usePageMeta.js';
 
-usePageMeta('Установка пароля', 'Создайте надежный пароль для вашего аккаунта');
+usePageMeta('Сброс пароля', 'Создайте новый пароль для вашего аккаунта');
 
 const router = useRouter();
 const route = useRoute();
@@ -163,7 +163,6 @@ const loading = ref(false);
 const tokenValid = ref(true);
 const errorMessage = ref('');
 const token = ref('');
-const userEmail = ref('');
 const showPassword = ref(false);
 const showPasswordConfirm = ref(false);
 
@@ -185,7 +184,6 @@ const passwordValidation = computed(() => {
     minLength: pwd.length >= 8,
     hasLowerCase: /[a-z]/.test(pwd),
     hasUpperCase: /[A-Z]/.test(pwd),
-    // Проверка совпадения: оба поля заполнены и совпадают
     passwordsMatch: pwd.length > 0 && pwdConfirm.length > 0 && pwd === pwdConfirm
   };
 });
@@ -198,7 +196,7 @@ const isPasswordValid = computed(() => {
       passwordValidation.value.passwordsMatch;
 });
 
-const handleSetPassword = async () => {
+const handleResetPassword = async () => {
   error.value = '';
   success.value = '';
 
@@ -211,44 +209,18 @@ const handleSetPassword = async () => {
   loading.value = true;
 
   try {
-    // 🆕 ДОБАВЬТЕ: Получаем referral_token из localStorage если есть
-    const referralToken = localStorage.getItem('referral_token');
-
-    // Шаг 1: Устанавливаем пароль (С referral_token если есть)
-    const setPasswordResponse = await accountAPI.setPassword(
+    const response = await accountAPI.passwordResetConfirm(
         token.value,
         password.value,
-        password_confirm.value,
-        referralToken  // 🆕 ДОБАВЬТЕ: Передаем referral_token
+        password_confirm.value
     );
 
-    userEmail.value = setPasswordResponse.data.email;
-    success.value = 'Пароль установлен! Выполняется вход в систему...';
+    success.value = response.data.message || 'Пароль успешно изменен!';
 
-    // 🆕 ДОБАВЬТЕ: Очищаем referral_token после использования
-    localStorage.removeItem('referral_token');
-
-    // Шаг 2: Автоматически авторизуем пользователя
-    try {
-      const loginResponse = await accountAPI.login(userEmail.value, password.value);
-
-      // Сохраняем токены
-      localStorage.setItem('access_token', loginResponse.data.access);
-      localStorage.setItem('refresh_token', loginResponse.data.refresh);
-
-      // Переходим на dashboard
-      setTimeout(() => {
-        router.push({ name: 'Dashboard' });
-      }, 1000);
-
-    } catch (loginErr) {
-      // Если автоматический вход не удался, перенаправляем на страницу входа
-      success.value = 'Пароль установлен! Переход на страницу входа...';
-      setTimeout(() => {
-        sessionStorage.setItem('email', userEmail.value);
-        router.push({ name: 'Login' });
-      }, 2000);
-    }
+    // Переходим на страницу входа через 2 секунды
+    setTimeout(() => {
+      router.push({ name: 'CheckEmail' });
+    }, 2000);
 
   } catch (err) {
     if (err.response?.data) {
@@ -261,10 +233,10 @@ const handleSetPassword = async () => {
             .join('; ');
         error.value = errorMessages;
       } else {
-        error.value = 'Ошибка при установке пароля';
+        error.value = 'Ошибка при сбросе пароля';
       }
     } else {
-      error.value = 'Ошибка при установке пароля';
+      error.value = 'Ошибка при сбросе пароля';
     }
   } finally {
     loading.value = false;

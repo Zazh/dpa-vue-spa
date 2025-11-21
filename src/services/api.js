@@ -1,4 +1,5 @@
 import axios from 'axios';
+import router from '@/router';
 
 const API_BASE_URL = 'http://localhost:8007/api';
 
@@ -9,7 +10,26 @@ const api = axios.create({
     },
 });
 
-// Interceptor для добавления токена
+// Флаг для предотвращения множественных запросов на refresh
+let isRefreshing = false;
+// Очередь запросов, ожидающих обновления токена
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+    failedQueue.forEach(prom => {
+        if (error) {
+            prom.reject(error);
+        } else {
+            prom.resolve(token);
+        }
+    });
+
+    failedQueue = [];
+};
+
+// ============================================
+// REQUEST INTERCEPTOR - добавляет токен
+// ============================================
 api.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('access_token');
@@ -22,6 +42,82 @@ api.interceptors.request.use(
         return Promise.reject(error);
     }
 );
+
+// ============================================
+// RESPONSE INTERCEPTOR - обрабатывает 401 и обновляет токен
+// ============================================
+api.interceptors.response.use(
+    (response) => response,
+    async (error) => {
+        const originalRequest = error.config;
+
+        if (error.response?.status === 401 && !originalRequest._retry) {
+
+            // Если это login/register - НЕ делаем refresh
+            const publicEndpoints = [
+                '/account/login/',
+                '/account/register/',
+                '/account/check-email/',
+                '/account/refresh/'
+            ];
+
+            if (publicEndpoints.some(ep => originalRequest.url.includes(ep))) {
+                return Promise.reject(error);
+            }
+
+            if (isRefreshing) {
+                return new Promise((resolve, reject) => {
+                    failedQueue.push({ resolve, reject });
+                })
+                    .then(token => {
+                        originalRequest.headers.Authorization = `Bearer ${token}`;
+                        return api(originalRequest);
+                    })
+                    .catch(err => Promise.reject(err));
+            }
+
+            originalRequest._retry = true;
+            isRefreshing = true;
+
+            const refreshToken = localStorage.getItem('refresh_token');
+
+            if (!refreshToken) {
+                localStorage.removeItem('access_token');
+                router.push({ name: 'CheckEmail' }); // ← ЧЕРЕЗ ROUTER
+                return Promise.reject(error);
+            }
+
+            try {
+                const response = await axios.post(`${API_BASE_URL}/account/refresh/`, {
+                    refresh: refreshToken
+                });
+
+                const { access } = response.data;
+                localStorage.setItem('access_token', access);
+
+                processQueue(null, access);
+
+                originalRequest.headers.Authorization = `Bearer ${access}`;
+                return api(originalRequest);
+
+            } catch (refreshError) {
+                processQueue(refreshError, null);
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('refresh_token');
+                router.push({ name: 'CheckEmail' }); // ← ЧЕРЕЗ ROUTER
+                return Promise.reject(refreshError);
+            } finally {
+                isRefreshing = false;
+            }
+        }
+
+        return Promise.reject(error);
+    }
+);
+
+// ============================================
+// API ENDPOINTS
+// ============================================
 
 export const accountAPI = {
     checkEmail: (email) => api.post('/account/check-email/', { email }),
@@ -42,71 +138,42 @@ export const accountAPI = {
 };
 
 export const coursesAPI = {
-    // Все курсы (каталог)
     getAllCourses: () => api.get('/courses/'),
-
-    // Мои курсы (с прогрессом)
     getMyCourses: () => api.get('/courses/my/'),
-
-    // Детали курса
     getCourseDetail: (courseId) => api.get(`/courses/${courseId}/`),
-
-    // Прогресс по курсу
     getCourseProgress: (courseId) => api.get(`/courses/${courseId}/progress/`),
-
-    // Детали урока
     getLessonDetail: (lessonId) => api.get(`/lessons/${lessonId}/`),
-
-    // Завершить урок
     completeLesson: (lessonId) => api.post(`/lessons/${lessonId}/complete/`),
-
-    // Прогресс видео
     updateVideoProgress: (lessonId, data) => api.post(`/lessons/${lessonId}/video-progress/`, data),
 };
 
 export const groupsAPI = {
-    // Получить информацию о группе по токену (БЕЗ авторизации)
     getGroupInfo: (token) => axios.get(`${API_BASE_URL}/groups/info/${token}/`),
-
-    // Присоединиться к группе (С авторизацией)
     joinGroup: (token) => api.post(`/groups/join/${token}/`),
 };
 
 export const lessonsAPI = {
-    // Получить урок по ID
     getLesson: (id) => api.get(`/lessons/${id}/`),
-
-    // Обновить прогресс видео
     updateVideoProgress: (id, data) => api.post(`/lessons/${id}/video-progress/`, data),
-
-    // Отметить урок как завершенный
     completeLesson: (id) => api.post(`/lessons/${id}/complete/`),
 };
 
 export const quizzesAPI = {
-    // Начать попытку
     startQuiz(quizId) {
         return api.post(`/quizzes/${quizId}/start/`);
     },
-
-    // Получить все попытки пользователя
     getAttempts() {
         return api.get('/quizzes/attempts/');
     },
-
-    // Получить детали попытки
     getAttempt(attemptId) {
         return api.get(`/quizzes/attempts/${attemptId}/`);
     },
-
-    // Отправить ответы
     submitAnswers(attemptId, answers) {
         return api.post(`/quizzes/attempts/${attemptId}/submit/`, { answers });
     }
 };
 
 export const assignmentsAPI = {
-    // Сдать задание
     submitAssignment(assignmentId, formData) {
         return api.post(`/assignments/${assignmentId}/submit/`, formData, {
             headers: {
@@ -114,18 +181,12 @@ export const assignmentsAPI = {
             }
         });
     },
-
-    // Получить все свои сдачи
     getMySubmissions() {
         return api.get('/assignments/my-submissions/');
     },
-
-    // Получить детали сдачи
     getSubmission(submissionId) {
         return api.get(`/assignments/submissions/${submissionId}/`);
     },
-
-    // Добавить комментарий
     addComment(submissionId, message) {
         return api.post(`/assignments/submissions/${submissionId}/comment/`, { message });
     }

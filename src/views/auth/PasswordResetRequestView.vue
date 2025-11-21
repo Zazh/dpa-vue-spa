@@ -69,10 +69,10 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
-import { accountAPI } from '@/services/api';
+import { accountAPI } from '@/services/api.js';
 import AuthLayout from '@/layouts/AuthLayout.vue';
 import Politics from '@/components/ui/Politics.vue';
-import { usePageMeta } from '@/composables/usePageMeta';
+import { usePageMeta } from '@/composables/usePageMeta.js';
 
 usePageMeta('Восстановление пароля', 'Введите email для восстановления доступа');
 

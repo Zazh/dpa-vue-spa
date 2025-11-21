@@ -132,9 +132,9 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { accountAPI } from '@/services/api';
+import { accountAPI } from '@/services/api.js';
 import MainLayout from '@/layouts/MainLayout.vue';
-import { usePageMeta } from '@/composables/usePageMeta';
+import { usePageMeta } from '@/composables/usePageMeta.js';
 
 usePageMeta('Dashboard', 'Личный кабинет');
 

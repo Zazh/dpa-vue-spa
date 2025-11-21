@@ -35,7 +35,7 @@ import { useRouter } from 'vue-router';
 
 const router = useRouter();
 const email = ref('');
-import { usePageMeta } from '@/composables/usePageMeta';
+import { usePageMeta } from '@/composables/usePageMeta.js';
 
 usePageMeta('Проверьте почту', 'Письмо со ссылкой отпарвлено на почту');
 

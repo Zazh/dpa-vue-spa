@@ -149,10 +149,10 @@
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { accountAPI, coursesAPI } from '@/services/api';
+import { accountAPI, coursesAPI } from '@/services/api.js';
 import MainLayout from '@/layouts/MainLayout.vue';
 import CourseCard from '@/components/ui/CourseCard.vue';
-import { usePageMeta } from '@/composables/usePageMeta';
+import { usePageMeta } from '@/composables/usePageMeta.js';
 
 usePageMeta('Dashboard', 'Личный кабинет');
 
