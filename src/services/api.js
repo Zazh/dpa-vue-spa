@@ -93,12 +93,14 @@ api.interceptors.response.use(
             }
 
             try {
-                const response = await axios.post(`${API_BASE_URL}/account/refresh/`, {
+                console.log('🔄 Обновляем токен...');
+                const response = await axios.post(`${API_BASE_URL}/account/token/refresh/`, {
                     refresh: refreshToken
                 });
 
                 const { access } = response.data;
                 localStorage.setItem('access_token', access);
+                console.log('✅ Токен обновлен успешно!');
 
                 processQueue(null, access);
 
@@ -106,10 +108,10 @@ api.interceptors.response.use(
                 return api(originalRequest);
 
             } catch (refreshError) {
+                console.log('❌ Ошибка обновления токена:', refreshError.response?.data);
                 processQueue(refreshError, null);
                 localStorage.removeItem('access_token');
                 localStorage.removeItem('refresh_token');
-                // ✅ ИСПРАВЛЕНО: используем window.location вместо router
                 window.location.href = '/';
                 return Promise.reject(refreshError);
             } finally {
