@@ -9,6 +9,7 @@
     "preview": "vite preview --open"
   },
   "dependencies": {
+    "@sentry/vue": "^10.26.0",
     "@vimeo/player": "^2.30.1",
     "axios": "^1.13.0",
     "pinia": "^2.3.1",

@@ -161,10 +161,8 @@ const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore(); // ← ДОБАВЛЕНО
 
-// ✅ ИЗМЕНЕНО: используем данные из Store
+// используем данные из Store
 const user = computed(() => authStore.user);
-
-// ❌ УБРАЛИ: loading и error для профиля (не нужны)
 
 // Курсы
 const activeTab = ref('all');
