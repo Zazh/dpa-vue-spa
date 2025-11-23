@@ -16,21 +16,29 @@ export const useAuthStore = defineStore('auth', {
     actions: {
         // Проверка авторизации при загрузке приложения
         async ensureAuth() {
+            console.log('🔐 ensureAuth() начался');
             const token = localStorage.getItem('access_token');
 
             if (!token) {
+                console.log('❌ Access token отсутствует');
                 this.initialized = true;
                 return;
             }
 
+            console.log('📝 Access token есть');
+
             try {
+                console.log('🌐 Запрашиваем профиль...');
                 const res = await accountAPI.getProfile();
                 this.user = res.data;
-                console.log('✅ Пользователь авторизован:', this.user.email);
+                console.log('✅ Профиль загружен:', this.user.email);
             } catch (err) {
-                console.log('❌ Токен невалидный, очищаем');
-                localStorage.removeItem('access_token');
-                localStorage.removeItem('refresh_token');
+                console.log('❌ Ошибка загрузки профиля:', err.response?.status);
+
+                // ✅ ИСПРАВЛЕНО: НЕ удаляем токены!
+                // Пусть interceptor сам решит что делать
+                // Если interceptor не смог обновить - он сам удалит и редиректнет
+
                 this.user = null;
             } finally {
                 this.initialized = true;

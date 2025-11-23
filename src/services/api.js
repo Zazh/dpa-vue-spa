@@ -53,23 +53,29 @@ api.interceptors.request.use(
 api.interceptors.response.use(
     (response) => response,
     async (error) => {
+        console.log('🔴 INTERCEPTOR СРАБОТАЛ!', {
+            status: error.response?.status,
+            url: error.config?.url,
+            message: error.response?.data
+        });
+
         const originalRequest = error.config;
 
         if (error.response?.status === 401 && !originalRequest._retry) {
-
-            // Если это login/register - НЕ делаем refresh
             const publicEndpoints = [
                 '/account/login/',
                 '/account/register/',
                 '/account/check-email/',
-                '/account/refresh/'
+                '/account/token/refresh/'
             ];
 
             if (publicEndpoints.some(ep => originalRequest.url.includes(ep))) {
+                console.log('⏭️ Публичный endpoint, не обновляем токен');
                 return Promise.reject(error);
             }
 
             if (isRefreshing) {
+                console.log('⏳ Токен уже обновляется, добавляем в очередь');
                 return new Promise((resolve, reject) => {
                     failedQueue.push({ resolve, reject });
                 })
@@ -86,21 +92,23 @@ api.interceptors.response.use(
             const refreshToken = localStorage.getItem('refresh_token');
 
             if (!refreshToken) {
+                console.log('❌ Refresh токен отсутствует!');
                 localStorage.removeItem('access_token');
-                // ✅ ИСПРАВЛЕНО: используем window.location вместо router
+                isRefreshing = false;
                 window.location.href = '/';
                 return Promise.reject(error);
             }
 
+            console.log('🔄 Обновляем access токен...');
+
             try {
-                console.log('🔄 Обновляем токен...');
                 const response = await axios.post(`${API_BASE_URL}/account/token/refresh/`, {
                     refresh: refreshToken
                 });
 
                 const { access } = response.data;
                 localStorage.setItem('access_token', access);
-                console.log('✅ Токен обновлен успешно!');
+                console.log('✅ Токен успешно обновлен!');
 
                 processQueue(null, access);
 
@@ -108,10 +116,14 @@ api.interceptors.response.use(
                 return api(originalRequest);
 
             } catch (refreshError) {
-                console.log('❌ Ошибка обновления токена:', refreshError.response?.data);
+                console.log('❌ Не удалось обновить токен:', refreshError.response?.data);
+
                 processQueue(refreshError, null);
+
+                // Удаляем токены только если refresh провалился
                 localStorage.removeItem('access_token');
                 localStorage.removeItem('refresh_token');
+
                 window.location.href = '/';
                 return Promise.reject(refreshError);
             } finally {
