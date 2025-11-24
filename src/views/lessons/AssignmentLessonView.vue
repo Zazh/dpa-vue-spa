@@ -1,5 +1,30 @@
 <template>
   <MainLayout>
+    <!-- ✅ УВЕДОМЛЕНИЕ -->
+    <Transition name="toast">
+      <div v-if="notification.show" class="notification" :class="notification.type">
+        <div class="flex items-center gap-3">
+          <!-- Иконка успеха -->
+          <svg v-if="notification.type === 'success'" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+          </svg>
+
+          <!-- Иконка ошибки -->
+          <svg v-else class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+          </svg>
+
+          <span class="flex-1 font-medium">{{ notification.message }}</span>
+
+          <button @click="notification.show = false" class="opacity-70 hover:opacity-100">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </Transition>
+
     <!-- Кнопка назад и заголовок -->
     <section class="py-4 lg:py-6 grid grid-cols-12 gap-4 lg:gap-8">
       <div class="col-span-full lg:col-span-2">
@@ -399,6 +424,27 @@ const canSubmit = computed(() => {
   return false;
 });
 
+// После других ref
+const notification = ref({
+  show: false,
+  message: '',
+  type: 'success' // 'success' или 'error'
+});
+
+// Функция показа уведомления
+function showNotification(message, type = 'success') {
+  notification.value = {
+    show: true,
+    message,
+    type
+  };
+
+  // Автоматически скрыть через 3 секунды
+  setTimeout(() => {
+    notification.value.show = false;
+  }, 3000);
+}
+
 // Валидация формы
 const isFormValid = computed(() => {
   if (!assignment.value) return false;
@@ -481,11 +527,7 @@ async function submitAssignment() {
       formData.append('submission_file', submissionForm.value.file);
     }
 
-    console.log('📤 Отправка задания...');
-
     const response = await assignmentsAPI.submitAssignment(assignment.value.id, formData);
-
-    console.log('✅ Задание отправлено:', response.data);
 
     // Очистить форму
     submissionForm.value = {
@@ -497,11 +539,13 @@ async function submitAssignment() {
     // Обновить список сдач
     await loadSubmissions();
 
-    alert('✅ Работа отправлена на проверку!');
+    // ✅ ЗАМЕНИТЬ:
+    showNotification('Работа успешно отправлена на проверку!', 'success');
 
   } catch (err) {
-    console.error('❌ Ошибка отправки:', err);
-    alert(err.response?.data?.error || 'Не удалось отправить задание');
+    console.error('Ошибка отправки:', err);
+    // ✅ ЗАМЕНИТЬ:
+    showNotification(err.response?.data?.error || 'Не удалось отправить задание', 'error');
   } finally {
     submitting.value = false;
   }
@@ -516,11 +560,10 @@ async function viewSubmission(submissionId) {
     currentSubmission.value = response.data;
     currentScreen.value = 'viewing';
 
-    console.log('✅ Сдача загружена:', currentSubmission.value);
-
   } catch (err) {
     console.error('❌ Ошибка загрузки сдачи:', err);
-    alert('Не удалось загрузить сдачу');
+    // ✅ ЗАМЕНИТЬ:
+    showNotification('Не удалось загрузить сдачу', 'error');
   } finally {
     loading.value = false;
   }
@@ -538,17 +581,16 @@ async function addComment() {
         commentText.value
     );
 
-    // Добавить комментарий в список
     currentSubmission.value.comments.push(response.data.comment);
-
-    // Очистить поле
     commentText.value = '';
 
-    console.log('✅ Комментарий добавлен');
+    // ✅ ДОБАВИТЬ:
+    showNotification('💬 Комментарий отправлен', 'success');
 
   } catch (err) {
     console.error('❌ Ошибка добавления комментария:', err);
-    alert('Не удалось отправить комментарий');
+    // ✅ ЗАМЕНИТЬ:
+    showNotification('Не удалось отправить комментарий', 'error');
   } finally {
     addingComment.value = false;
   }
@@ -631,5 +673,42 @@ function getCannotSubmitReason() {
 </script>
 
 <style scoped>
-/* Дополнительные стили если нужны */
+/* Уведомление */
+.notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  min-width: 320px;
+  max-width: 500px;
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(10px);
+  color: white;
+}
+
+.notification.success {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.95), rgba(5, 150, 105, 0.95));
+}
+
+.notification.error {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.95), rgba(220, 38, 38, 0.95));
+}
+
+/* Анимация */
+.toast-enter-active,
+.toast-leave-active {
+  transition: all 0.3s ease;
+}
+
+.toast-enter-from {
+  opacity: 0;
+  transform: translateX(100px);
+}
+
+.toast-leave-to {
+  opacity: 0;
+  transform: translateY(-20px);
+}
 </style>
