@@ -85,19 +85,20 @@
               <div class="prose prose-sm max-w-none" v-html="formatInstructions(assignment.instructions)"></div>
             </div>
 
-            <!-- Описание урока -->
+            <!-- Описание урока
             <div v-if="lesson.description" class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
               <p class="text-gray-700">{{ lesson.description }}</p>
             </div>
+            -->
 
             <!-- История сдач -->
-            <div v-if="submissions.length > 0" class="space-y-4">
+            <div v-if="submissions.length > 0" class="space-y-4 mt-12">
               <h3 class="text-lg font-bold">История сдач</h3>
 
               <div
                   v-for="submission in submissions"
                   :key="submission.id"
-                  class="bg-white border rounded-lg p-4 cursor-pointer hover:border-blue-400 transition-colors"
+                  class="bg-white border border-gray-200 rounded-lg p-4 cursor-pointer hover:border-blue-400 transition-colors"
                   @click="viewSubmission(submission.id)"
               >
                 <div class="flex items-center justify-between">
@@ -196,9 +197,6 @@
                     {{ getStatusText(currentSubmission.status) }}
                   </span>
                 </div>
-                <button @click="backToInfo" class="text-blue-600 hover:text-blue-700">
-                  ← Назад
-                </button>
               </div>
 
               <div class="grid grid-cols-2 gap-4 text-sm">

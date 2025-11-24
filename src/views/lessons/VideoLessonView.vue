@@ -111,7 +111,7 @@
           <!-- Материалы -->
           <div v-if="materials && materials.length > 0" class="w-full">
             <div>
-              <h2 class="h2 font-bold text-black leading-tight">Материалы к уроку</h2>
+              <h2 class="text-xl font-bold text-black leading-tight">Материалы к уроку</h2>
             </div>
             <ul class="flex flex-col gap-3 pt-4">
               <li

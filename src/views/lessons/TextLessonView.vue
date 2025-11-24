@@ -1,7 +1,7 @@
 <template>
   <MainLayout>
     <!-- Кнопка назад и заголовок -->
-    <section class="py-4 lg:py-6 grid grid-cols-12 gap-4 lg:gap-8">
+    <section class="py-4 lg:pt-6 lg:pb-6 grid grid-cols-12 gap-4 lg:gap-8">
       <div class="col-span-full md:col-span-2">
         <button @click="goBack" class="btn-back">
           <span class="btn-back__icon">
@@ -13,7 +13,7 @@
         </button>
       </div>
       <div class="col-span-full md:col-span-10 flex items-center">
-        <h2 v-if="lesson" class="h2 font-bold text-black leading-tight mt-3">
+        <h2 v-if="lesson" class="h1 font-bold text-black leading-tight mt-3">
           {{ lesson.title }}
         </h2>
       </div>
@@ -37,7 +37,7 @@
         <div class="col-span-full md:col-span-8 md:col-start-3">
 
           <!-- Информация о чтении -->
-          <div class="mb-6 flex items-center gap-4 text-sm text-gray-600 flex-wrap">
+          <div class="mb-2 flex items-center gap-4 text-sm text-gray-600 flex-wrap">
             <span class="flex items-center gap-1">
               <svg class="w-5 h-5 -mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -52,10 +52,11 @@
             </span>
           </div>
 
-          <!-- Описание урока (если есть) -->
+          <!-- Описание урока (если есть)
           <div v-if="lesson.description" class="mb-8 p-4 bg-blue-50 border-l-4 border-blue-500 rounded">
             <p class="text-gray-700 text-lg">{{ lesson.description }}</p>
           </div>
+          -->
 
           <!-- Контент урока -->
           <div
@@ -65,7 +66,7 @@
 
           <!-- Материалы к уроку -->
           <div v-if="materials?.length > 0" class="mt-12">
-            <h3 class="text-2xl font-bold text-black mb-4">Материалы к уроку</h3>
+            <h3 class="text-xl font-bold text-black mb-4">Материалы к уроку</h3>
             <ul class="flex flex-col gap-3">
               <li
                   v-for="material in materials"
@@ -91,11 +92,7 @@
                       {{ material.description }}
                     </span>
                   </div>
-                  <span class="text-blue-600">
-                    <svg class="h-7" viewBox="0 0 27 27" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path fill-rule="evenodd" clip-rule="evenodd" d="M0 13.3333C0 7.04793 -1.19209e-07 3.90524 1.95263 1.95263C3.90524 -1.19209e-07 7.04793 0 13.3333 0C19.6187 0 22.7615 -1.19209e-07 24.714 1.95263C26.6667 3.90524 26.6667 7.04793 26.6667 13.3333C26.6667 19.6187 26.6667 22.7615 24.714 24.714C22.7615 26.6667 19.6187 26.6667 13.3333 26.6667C7.04793 26.6667 3.90524 26.6667 1.95263 24.714C-1.19209e-07 22.7615 0 19.6187 0 13.3333ZM13.3333 5.66667C13.8856 5.66667 14.3333 6.11439 14.3333 6.66667V13.5857L16.6263 11.2929C17.0168 10.9024 17.6499 10.9024 18.0404 11.2929C18.4309 11.6835 18.4309 12.3165 18.0404 12.7071L14.0404 16.7071C13.8529 16.8947 13.5985 17 13.3333 17C13.0681 17 12.8137 16.8947 12.6263 16.7071L8.62623 12.7071C8.23571 12.3165 8.23571 11.6835 8.62623 11.2929C9.01675 10.9024 9.64992 10.9024 10.0404 11.2929L12.3333 13.5857V6.66667C12.3333 6.11439 12.7811 5.66667 13.3333 5.66667ZM8 19C7.44772 19 7 19.4477 7 20C7 20.5523 7.44772 21 8 21H18.6667C19.2189 21 19.6667 20.5523 19.6667 20C19.6667 19.4477 19.2189 19 18.6667 19H8Z" fill="currentColor"/>
-                    </svg>
-                  </span>
+
                 </a>
               </li>
             </ul>

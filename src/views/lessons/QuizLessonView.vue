@@ -83,10 +83,11 @@
 <!--              </div>-->
             </div>
 
-            <!-- Описание урока -->
+            <!-- Описание урока
             <div v-if="lesson.description" class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
               <p class="text-gray-700">{{ lesson.description }}</p>
             </div>
+             -->
 
             <!-- Проверка возможности прохождения -->
             <div v-if="!quiz.can_attempt.allowed" class="bg-red-50 border border-red-200 rounded-lg p-4">
