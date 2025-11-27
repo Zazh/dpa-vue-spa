@@ -214,4 +214,16 @@ export const assignmentsAPI = {
     }
 };
 
+
+export const graduatesAPI = {
+    // Мои выпуски
+    getMyGraduations: () => api.get('/graduates/me/'),
+
+    // Детали выпуска
+    getGraduation: (id) => api.get(`/graduates/${id}/`),
+
+    // Скачать сертификат
+    getCertificate: (id) => api.get(`/graduates/${id}/certificate/`),
+};
+
 export default api;

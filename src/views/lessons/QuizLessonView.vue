@@ -1,5 +1,67 @@
 <template>
   <MainLayout>
+
+    <!-- ✅ УВЕДОМЛЕНИЕ -->
+    <Transition name="toast">
+      <div v-if="notification.show" class="notification" :class="notification.type">
+        <div class="flex items-center gap-3">
+          <!-- Иконка успеха -->
+          <svg v-if="notification.type === 'success'" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+          </svg>
+
+          <!-- Иконка ошибки -->
+          <svg v-else-if="notification.type === 'error'" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+          </svg>
+
+          <!-- Иконка предупреждения -->
+          <svg v-else class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+          </svg>
+
+          <span class="flex-1 font-medium">{{ notification.message }}</span>
+
+          <button @click="notification.show = false" class="opacity-70 hover:opacity-100">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </Transition>
+
+    <!-- ✅ МОДАЛЬНОЕ ОКНО ПОДТВЕРЖДЕНИЯ -->
+    <Transition name="modal">
+      <div v-if="confirmDialog.show" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+          <div class="flex items-start gap-4 mb-4">
+            <svg class="w-12 h-12 text-yellow-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            </svg>
+            <div class="flex-1">
+              <h3 class="text-lg font-bold text-gray-900 mb-2">{{ confirmDialog.title }}</h3>
+              <p class="text-sm text-gray-600">{{ confirmDialog.message }}</p>
+            </div>
+          </div>
+          <div class="flex gap-3 justify-end">
+            <button
+                @click="confirmDialog.reject()"
+                class="px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50"
+            >
+              Отмена
+            </button>
+            <button
+                @click="confirmDialog.resolve()"
+                class="px-4 py-2 bg-yellow-600 text-white rounded-lg font-medium hover:bg-yellow-700"
+            >
+              Продолжить
+            </button>
+          </div>
+        </div>
+      </div>
+    </Transition>
+
     <!-- Кнопка назад и заголовок -->
     <section class="py-4 lg:py-6 grid grid-cols-12 gap-4 lg:gap-8">
       <div class="col-span-full lg:col-span-2">
@@ -377,6 +439,51 @@ const error = ref(null);
 const lesson = ref(null);
 const quiz = ref(null);
 const attemptHistory = ref([]);
+const notification = ref({
+  show: false,
+  message: '',
+  type: 'success' // 'success', 'error', 'warning'
+});
+
+const confirmDialog = ref({
+  show: false,
+  title: '',
+  message: '',
+  resolve: () => {},
+  reject: () => {}
+});
+
+// Функция показа уведомления
+function showNotification(message, type = 'success') {
+  notification.value = {
+    show: true,
+    message,
+    type
+  };
+
+  setTimeout(() => {
+    notification.value.show = false;
+  }, 3000);
+}
+
+// Функция подтверждения
+function showConfirm(title, message) {
+  return new Promise((resolve, reject) => {
+    confirmDialog.value = {
+      show: true,
+      title,
+      message,
+      resolve: () => {
+        confirmDialog.value.show = false;
+        resolve(true);
+      },
+      reject: () => {
+        confirmDialog.value.show = false;
+        reject(false);
+      }
+    };
+  });
+}
 
 // Экраны: 'info', 'taking', 'results'
 const currentScreen = ref('info');
@@ -455,7 +562,6 @@ async function startQuiz() {
     userAnswers.value = {};
     currentQuestionIndex.value = 0;
 
-    // Запустить таймер если есть ограничение
     if (response.data.time_limit_minutes > 0) {
       timeRemaining.value = response.data.time_limit_minutes * 60;
       startTimer();
@@ -467,11 +573,13 @@ async function startQuiz() {
 
   } catch (err) {
     console.error('❌ Ошибка старта теста:', err);
-    alert('Не удалось начать тест. Попробуйте позже.');
+    // ✅ БЫЛО: alert('Не удалось начать тест. Попробуйте позже.');
+    showNotification('Не удалось начать тест. Попробуйте позже.', 'error');
   } finally {
     startingQuiz.value = false;
   }
 }
+
 
 // Таймер
 function startTimer() {
@@ -480,7 +588,7 @@ function startTimer() {
       timeRemaining.value--;
     } else {
       clearTimer();
-      alert('Время вышло! Тест будет автоматически отправлен.');
+      showNotification('⏱ Время вышло! Тест автоматически отправлен', 'warning');
       submitQuiz();
     }
   }, 1000);
@@ -540,15 +648,23 @@ function previousQuestion() {
 }
 
 // Подтверждение отправки
-function confirmSubmit() {
+async function confirmSubmit() {
   const unanswered = questions.value.filter(q => !userAnswers.value[q.id] || userAnswers.value[q.id].length === 0);
 
   if (unanswered.length > 0) {
-    const confirmed = confirm(`У вас остались ${unanswered.length} неотвеченных вопросов. Завершить тест?`);
-    if (!confirmed) return;
+    try {
+      await showConfirm(
+          'Завершить тест?',
+          `У вас остались ${unanswered.length} неотвеченных вопросов. Вы уверены что хотите завершить тест?`
+      );
+      submitQuiz();
+    } catch {
+      // Пользователь отменил
+      return;
+    }
+  } else {
+    submitQuiz();
   }
-
-  submitQuiz();
 }
 
 // Отправить тест
@@ -557,27 +673,26 @@ async function submitQuiz() {
     submitting.value = true;
     clearTimer();
 
-    // Формируем ответы в нужном формате
     const answers = Object.keys(userAnswers.value).map(questionId => ({
       question_id: parseInt(questionId),
       answer_ids: userAnswers.value[questionId]
     }));
 
-    console.log('📤 Отправка ответов:', answers);
+    console.log('Отправка ответов:', answers);
 
     const response = await quizzesAPI.submitAnswers(currentAttemptId.value, answers);
 
     results.value = response.data;
     currentScreen.value = 'results';
 
-    console.log('✅ Результаты получены:', results.value);
+    console.log('Результаты получены:', results.value);
 
-    // Обновить историю
     await loadAttemptHistory();
 
   } catch (err) {
     console.error('❌ Ошибка отправки теста:', err);
-    alert('Не удалось отправить тест. Попробуйте еще раз.');
+    // alert('Не удалось отправить тест. Попробуйте еще раз.');
+    showNotification('Не удалось отправить тест. Попробуйте еще раз.', 'error');
   } finally {
     submitting.value = false;
   }
@@ -606,5 +721,70 @@ function goBack() {
 </script>
 
 <style scoped>
-/* Дополнительные стили если нужны */
+/* Уведомление */
+.notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  min-width: 320px;
+  max-width: 500px;
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(10px);
+  color: white;
+}
+
+.notification.success {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.95), rgba(5, 150, 105, 0.95));
+}
+
+.notification.error {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.95), rgba(220, 38, 38, 0.95));
+}
+
+.notification.warning {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.95), rgba(217, 119, 6, 0.95));
+}
+
+/* Анимация уведомления */
+.toast-enter-active,
+.toast-leave-active {
+  transition: all 0.3s ease;
+}
+
+.toast-enter-from {
+  opacity: 0;
+  transform: translateX(100px);
+}
+
+.toast-leave-to {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+/* Модальное окно */
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+}
+
+.modal-enter-active .bg-white,
+.modal-leave-active .bg-white {
+  transition: transform 0.3s ease;
+}
+
+.modal-enter-from .bg-white {
+  transform: scale(0.9);
+}
+
+.modal-leave-to .bg-white {
+  transform: scale(0.9);
+}
 </style>
