@@ -10,6 +10,10 @@ import SetPasswordView from '@/views/auth/SetPasswordView.vue';
 import PasswordResetRequestView from '@/views/auth/PasswordResetRequestView.vue';
 import PasswordResetConfirmView from '@/views/auth/PasswordResetConfirmView.vue';
 
+// Auth Egov
+import EgovAuthView from '@/views/auth/EgovAuthView.vue';
+import EgovRegisterView from '@/views/auth/EgovRegisterView.vue';
+
 // Main views
 import DashboardView from '@/views/courses/DashboardView.vue';
 import ProfileView from '@/views/profile/ProfileView.vue';
@@ -69,6 +73,18 @@ const routes = [
         path: '/password-reset/confirm',
         name: 'PasswordResetConfirm',
         component: PasswordResetConfirmView,
+        meta: { requiresAuth: false }
+    },
+    {
+        path: '/egov-auth',
+        name: 'EgovAuth',
+        component: EgovAuthView,
+        meta: { requiresAuth: false }
+    },
+    {
+        path: '/egov-register',
+        name: 'EgovRegister',
+        component: EgovRegisterView,
         meta: { requiresAuth: false }
     },
 

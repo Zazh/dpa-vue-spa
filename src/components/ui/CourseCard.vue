@@ -1,6 +1,6 @@
 <template>
-  <article @click="openCourse" class="courses-card col-span-full md:col-span-6 lg:col-span-4 base-card">
-    <div class="card_body">
+  <article class="courses-card col-span-full md:col-span-6 lg:col-span-4 base-card">
+    <div @click="openCourse" class="card_body">
       <div class="title">
         <div class="w-full">
           <h4 class="h4">
@@ -98,7 +98,16 @@
     </div>
 
     <!-- Card footer (условно в зависимости от состояния) -->
-    <div v-if="showFooter" class="card_footer">
+    <!-- Card footer (условно в зависимости от состояния) -->
+    <div
+        v-if="showFooter"
+        class="card_footer"
+        :class="{
+      'cursor-pointer hover:bg-gray-50': cardState !== 'locked',
+      'cursor-not-allowed': cardState === 'locked'
+    }"
+        @click="handleFooterClick"
+    >
       <!-- Not started: Начать первый урок -->
       <template v-if="cardState === 'not-started'">
         <div class="icon">
@@ -123,25 +132,27 @@
         </p>
       </template>
 
-      <!-- Locked: Замочек + время до разблокировки -->
+      <!-- ✅ Locked: Замочек + countdown -->
       <template v-else-if="cardState === 'locked'">
         <div class="icon">
-          <svg class="h-7 text-red-500" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 3a5 5 0 0 1 5 5v2.005c.77.015 1.246.07 1.635.268a2.5 2.5 0 0 1 1.092 1.092C20 11.9 20 12.6 20 14v3c0 1.4 0 2.1-.273 2.635a2.5 2.5 0 0 1-1.092 1.092C18.1 21 17.4 21 16 21H8c-1.4 0-2.1 0-2.635-.273a2.5 2.5 0 0 1-1.093-1.092C4 19.1 4 18.4 4 17v-3c0-1.4 0-2.1.272-2.635a2.5 2.5 0 0 1 1.093-1.092c.389-.199.865-.253 1.635-.268V8a5 5 0 0 1 5-5zm3 5v2H9V8a3 3 0 1 1 6 0z" fill="currentColor"/></svg>
+          <svg class="h-7 text-orange-500" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 3a5 5 0 0 1 5 5v2.005c.77.015 1.246.07 1.635.268a2.5 2.5 0 0 1 1.092 1.092C20 11.9 20 12.6 20 14v3c0 1.4 0 2.1-.273 2.635a2.5 2.5 0 0 1-1.092 1.092C18.1 21 17.4 21 16 21H8c-1.4 0-2.1 0-2.635-.273a2.5 2.5 0 0 1-1.093-1.092C4 19.1 4 18.4 4 17v-3c0-1.4 0-2.1.272-2.635a2.5 2.5 0 0 1 1.093-1.092c.389-.199.865-.253 1.635-.268V8a5 5 0 0 1 5-5zm3 5v2H9V8a3 3 0 1 1 6 0z"/>
+          </svg>
         </div>
-        <p class="text-sm text-gray-500 leading-tight font-medium inline-block">
-          <span class="pt-1 inline-flex">Будет доступно {{ timeUntilAvailable }}</span>
+        <p class="text-sm text-orange-600 leading-tight font-medium inline-block">
+          <span class="pt-1 inline-flex">{{ timeUntilAvailable }}</span>
         </p>
       </template>
 
-      <!-- Completed: Скачать сертификат -->
+      <!-- Completed: Курс пройден -->
       <template v-else-if="cardState === 'completed'">
         <div class="icon">
-          <svg class="h-7" viewBox="0 0 27 27" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path fill-rule="evenodd" clip-rule="evenodd" d="M0 13.3333C0 7.04793 -1.19209e-07 3.90524 1.95263 1.95263C3.90524 -1.19209e-07 7.04793 0 13.3333 0C19.6187 0 22.7615 -1.19209e-07 24.714 1.95263C26.6667 3.90524 26.6667 7.04793 26.6667 13.3333C26.6667 19.6187 26.6667 22.7615 24.714 24.714C22.7615 26.6667 19.6187 26.6667 13.3333 26.6667C7.04793 26.6667 3.90524 26.6667 1.95263 24.714C-1.19209e-07 22.7615 0 19.6187 0 13.3333ZM13.3333 5.66667C13.8856 5.66667 14.3333 6.11439 14.3333 6.66667V13.5857L16.6263 11.2929C17.0168 10.9024 17.6499 10.9024 18.0404 11.2929C18.4309 11.6835 18.4309 12.3165 18.0404 12.7071L14.0404 16.7071C13.8529 16.8947 13.5985 17 13.3333 17C13.0681 17 12.8137 16.8947 12.6263 16.7071L8.62623 12.7071C8.23571 12.3165 8.23571 11.6835 8.62623 11.2929C9.01675 10.9024 9.64992 10.9024 10.0404 11.2929L12.3333 13.5857V6.66667C12.3333 6.11439 12.7811 5.66667 13.3333 5.66667ZM8 19C7.44772 19 7 19.4477 7 20C7 20.5523 7.44772 21 8 21H18.6667C19.2189 21 19.6667 20.5523 19.6667 20C19.6667 19.4477 19.2189 19 18.6667 19H8Z" fill="currentColor"/>
+          <svg class="h-7 text-green-600" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm3.707 8.707a1 1 0 0 0-1.414-1.414L11 12.586l-1.293-1.293a1 1 0 0 0-1.414 1.414l2 2a1 1 0 0 0 1.414 0l4-4z"/>
           </svg>
         </div>
         <p class="text-sm text-gray-700 leading-tight font-medium inline-block">
-          <span class="pt-1 inline-flex">Скачать сертификат</span>
+          <span class="pt-1 inline-flex">Курс пройден</span>
         </p>
       </template>
     </div>
@@ -173,10 +184,22 @@ let intervalId = null;
 onMounted(() => {
   currentTime.value = Date.now();
 
-  // Обновляем каждую минуту (для продакшена)
+  // Отладка
+  console.log('🎴 CourseCard mounted:', {
+    title: courseTitle.value,
+    nextLockedLesson: props.course.nextLockedLesson,
+    hasAccess: hasAccess.value,
+    cardState: cardState.value
+  });
+
   intervalId = setInterval(() => {
     currentTime.value = Date.now();
-  }, 60000); // 60000 = 1 минута, можно изменить на 1000 для теста (1 секунда)
+
+    // Лог каждую минуту (или 10 сек для теста)
+    if (props.course.nextLockedLesson) {
+      console.log('⏱️ CourseCard tick, timeUntilAvailable:', timeUntilAvailable.value);
+    }
+  }, 10000);
 });
 
 // Очищаем интервал при размонтировании
@@ -218,6 +241,60 @@ const totalLessons = computed(() => {
 const currentLesson = computed(() => props.course.current_lesson || null);
 const currentLessonTitle = computed(() => currentLesson.value?.title || 'Следующий урок');
 
+const nextLessonTitle = computed(() => {
+  return props.course.nextLockedLesson?.title || 'Следующий урок';
+});
+
+// Функция для перехода на урок
+const openLesson = () => {
+  if (!currentLesson.value) {
+    openCourse();
+    return;
+  }
+
+  // Используем type (не lesson_type)
+  const lessonType = currentLesson.value.type;
+  const lessonId = currentLesson.value.id;
+
+  const routeMap = {
+    'video': 'VideoLesson',
+    'text': 'TextLesson',
+    'quiz': 'QuizLesson',
+    'assignment': 'AssignmentLesson'
+  };
+
+  const routeName = routeMap[lessonType];
+
+  if (routeName) {
+    router.push({
+      name: routeName,
+      params: { id: lessonId }
+    });
+  } else {
+    console.warn('Неизвестный тип урока:', lessonType);
+    openCourse();
+  }
+};
+
+// Обработчик клика по footer
+const handleFooterClick = (event) => {
+  event.stopPropagation(); // Предотвращаем всплытие
+
+  if (cardState.value === 'locked') {
+    console.log('Урок заблокирован, переход запрещён');
+    return; // Ничего не делаем
+  }
+
+  if (cardState.value === 'completed') {
+    // Для завершённого курса - открываем курс
+    openCourse();
+    return;
+  }
+
+  // Для not-started и in-progress - открываем урок
+  openLesson();
+};
+
 const hasAccess = computed(() => {
   if (props.course.has_access !== undefined) {
     return props.course.has_access;
@@ -230,62 +307,98 @@ const timeUntilAvailable = computed(() => {
   const availableAt = props.course.nextLockedLesson?.available_at;
 
   if (!availableAt) {
-    return 'скоро';
+    return 'Следующий урок скоро будет доступен';
   }
 
   const availableDate = new Date(availableAt);
   const now = currentTime.value;
   const diffMs = availableDate - now;
 
-  // Если время уже прошло
+  // ✅ Если время прошло - урок доступен
   if (diffMs <= 0) {
-    return 'доступен сейчас';
+    return 'Урок уже доступен!';
   }
 
-  // Переводим в минуты и часы
+  // Переводим в секунды, минуты и часы
+  const diffSeconds = Math.floor(diffMs / 1000);
   const diffMinutes = Math.floor(diffMs / (1000 * 60));
   const diffHours = Math.floor(diffMinutes / 60);
+  const diffDays = Math.floor(diffHours / 24);
+  const remainingHours = diffHours % 24;
   const remainingMinutes = diffMinutes % 60;
 
+  // ✅ Если меньше минуты - показываем секунды
+  if (diffMinutes === 0 && diffSeconds > 0) {
+    return `Урок откроется меньше чем через минуту`;
+  }
+
   // Форматируем вывод
-  if (diffHours > 0 && remainingMinutes > 0) {
-    return `через ${diffHours} ч. ${remainingMinutes} мин.`;
+  if (diffDays > 0) {
+    return `Следующий урок через ${diffDays} ${getDaysWord(diffDays)} ${remainingHours} ч.`;
+  } else if (diffHours > 0 && remainingMinutes > 0) {
+    return `Следующий урок через ${diffHours} ч. ${remainingMinutes} мин.`;
   } else if (diffHours > 0) {
-    return `через ${diffHours} ${getHoursWord(diffHours)}`;
+    return `Следующий урок через ${diffHours} ${getHoursWord(diffHours)}`;
   } else if (diffMinutes > 0) {
-    return `через ${diffMinutes} ${getMinutesWord(diffMinutes)}`;
+    return `Следующий урок через ${diffMinutes} ${getMinutesWord(diffMinutes)}`;
   } else {
-    return 'доступен сейчас';
+    return 'Урок уже доступен!';
   }
 });
-
+// Определение состояния карточки
 // Определение состояния карточки
 const cardState = computed(() => {
-  // Для "Всех курсов" - всегда not-started
   if (!props.showProgress) {
     return 'not-started';
   }
 
   const progress = parseFloat(progressPercentage.value);
 
-  // Если есть заблокированный урок и прогресс > 0 - locked
-  if (!hasAccess.value && progress > 0) {
-    return 'locked';
+  // Проверяем заблокированный урок
+  if (props.course.nextLockedLesson) {
+    const availableAt = props.course.nextLockedLesson.available_at;
+
+    if (availableAt) {
+      const diffMs = new Date(availableAt).getTime() - currentTime.value;
+
+      // Если время ещё не прошло - locked
+      if (diffMs > 0) {
+        return 'locked';
+      }
+      // Если время прошло - не показываем locked, покажем in-progress
+    }
   }
 
-  // Если прогресс 100% - completed
   if (progress >= 100) {
     return 'completed';
   }
 
-  // Если прогресс 0% - not-started
   if (progress === 0) {
     return 'not-started';
   }
 
-  // Иначе - in-progress
   return 'in-progress';
 });
+
+const getDaysWord = (count) => {
+  const lastDigit = count % 10;
+  const lastTwoDigits = count % 100;
+
+  if (lastTwoDigits >= 11 && lastTwoDigits <= 19) {
+    return 'дней';
+  }
+
+  if (lastDigit === 1) {
+    return 'день';
+  }
+
+  if (lastDigit >= 2 && lastDigit <= 4) {
+    return 'дня';
+  }
+
+  return 'дней';
+};
+
 
 // Показывать ли footer
 const showFooter = computed(() => {

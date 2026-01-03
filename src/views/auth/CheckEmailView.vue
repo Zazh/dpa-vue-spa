@@ -48,6 +48,16 @@
         </div>
       </div>
 
+      <div>
+        <!-- Кнопка eGov Mobile -->
+        <button
+            type="button"
+            @click="goToEgovAuth"
+            class="w-full text-sm bg-white border border-gray-300 text-gray-700 font-medium cursor-pointer hover:bg-gray-50 rounded-full py-4">
+          Войти через eGov Mobile
+        </button>
+      </div>
+
       <div class="authorization-form__footer">
         <div class="text-center">
           <Politics />
@@ -112,6 +122,11 @@ const handleSubmit = async () => {
   } finally {
     loading.value = false;
   }
+};
+
+const goToEgovAuth = () => {
+  // Сохраняем referral_token если есть (он уже в localStorage)
+  router.push({ name: 'EgovAuth' });
 };
 </script>
 

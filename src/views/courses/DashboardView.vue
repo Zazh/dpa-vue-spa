@@ -200,23 +200,12 @@
       </div>
     </section>
 
-    <div class="dashboard-container">
 
-      <div v-if="loading" class="py-8 text-center">
-        <p class="text-gray-600">Загрузка...</p>
-      </div>
-
-      <div v-else-if="error" class="py-8">
-        <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
-          <p class="text-red-600">{{ error }}</p>
-        </div>
-      </div>
-    </div>
   </MainLayout>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { coursesAPI, graduatesAPI } from '@/services/api.js';
 import { useAuthStore } from '@/stores/auth'; //
@@ -251,6 +240,11 @@ const joinError = ref('');
 const graduations = ref([]);
 const graduationsLoading = ref(false);
 
+// Таймеры
+let progressRefreshInterval = null;
+let countdownInterval = null;
+const currentTime = ref(Date.now());
+
 // Динамическое приветствие
 const greeting = computed(() => {
   const hour = new Date().getHours();
@@ -266,38 +260,86 @@ const greeting = computed(() => {
   }
 });
 
+// Форматирование оставшегося времени
+const formatTimeRemaining = (availableAt) => {
+  if (!availableAt) return null;
+
+  const targetTime = new Date(availableAt).getTime();
+  const remaining = targetTime - currentTime.value;
+
+  if (remaining <= 0) return null; // Время истекло
+
+  const hours = Math.floor(remaining / (1000 * 60 * 60));
+  const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+
+  if (hours > 24) {
+    const days = Math.floor(hours / 24);
+    return `${days} д. ${hours % 24} ч.`;
+  }
+
+  if (hours > 0) {
+    return `${hours} ч. ${minutes} мин.`;
+  }
+
+  return `${minutes} мин.`;
+};
+
 // Обогащенные курсы с деталями прогресса
 const enrichedMyCourses = computed(() => {
-  console.log('🔄 Обогащение курсов данными о блокировке...');
+  // ✅ Явно используем currentTime чтобы Vue отслеживал зависимость
+  const now = currentTime.value;
+
+  console.log('🔄 Обогащение курсов, время:', new Date(now).toLocaleTimeString());
 
   return myCourses.value.map(course => {
     const courseId = course.course.id;
     const progressDetail = courseProgressDetails.value[courseId];
 
-    console.log(`📚 Обработка курса ${courseId}:`, course.course.title);
-
     if (!progressDetail) {
-      console.log(`⚠️ Нет детального прогресса для курса ${courseId}`);
       return course;
     }
 
-    // Ищем следующий недоступный урок
     const nextLockedLesson = findNextLockedLesson(progressDetail);
 
-    const enrichedCourse = {
+    // ✅ Передаем now напрямую
+    let timeRemaining = null;
+    if (nextLockedLesson?.available_at) {
+      const targetTime = new Date(nextLockedLesson.available_at).getTime();
+      const remaining = targetTime - now;
+
+      if (remaining <= 0) {
+        nextLockedLesson.is_now_available = true;
+        timeRemaining = null;
+      } else {
+        timeRemaining = formatTimeFromMs(remaining);
+      }
+    }
+
+    return {
       ...course,
       nextLockedLesson: nextLockedLesson,
-      has_access: !nextLockedLesson
+      timeRemaining: timeRemaining,
+      has_access: !nextLockedLesson || nextLockedLesson.is_now_available
     };
-
-    console.log(`✅ Обогащенный курс ${courseId}:`, {
-      has_access: enrichedCourse.has_access,
-      nextLockedLesson: enrichedCourse.nextLockedLesson
-    });
-
-    return enrichedCourse;
   });
 });
+
+// ✅ Вспомогательная функция форматирования
+const formatTimeFromMs = (ms) => {
+  const hours = Math.floor(ms / (1000 * 60 * 60));
+  const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+
+  if (hours > 24) {
+    const days = Math.floor(hours / 24);
+    return `${days} д. ${hours % 24} ч.`;
+  }
+
+  if (hours > 0) {
+    return `${hours} ч. ${minutes} мин.`;
+  }
+
+  return `${minutes} мин.`;
+};
 
 // Функция поиска следующего заблокированного урока
 const findNextLockedLesson = (progressDetail) => {
@@ -373,6 +415,13 @@ onMounted(async () => {
   await loadCourses();
   await loadGraduations();
 
+  // ✅ ДОБАВИТЬ ЭТУ СТРОКУ:
+  startTimers();
+});
+
+// ✅ ДОБАВИТЬ onUnmounted:
+onUnmounted(() => {
+  stopTimers();
 });
 
 
@@ -445,6 +494,44 @@ const loadGraduations = async () => {
   } finally {
     graduationsLoading.value = false;
   }
+};
+
+// ✅ Запуск таймеров
+const startTimers = () => {
+  // ✅ Для тестирования: 10 секунд вместо 60
+  countdownInterval = setInterval(() => {
+    currentTime.value = Date.now();
+    console.log('⏱️ Tick:', new Date().toLocaleTimeString());
+
+    // Проверяем, не истекло ли время
+    const hasExpiredLock = enrichedMyCourses.value.some(
+        course => course.nextLockedLesson?.is_now_available
+    );
+
+    if (hasExpiredLock) {
+      console.log('🔓 Время блокировки истекло!');
+      loadCourseProgressDetails();
+    }
+  }, 10000); // 10 секунд для теста, потом верни 60000
+
+  // Полное обновление каждые 5 минут
+  progressRefreshInterval = setInterval(async () => {
+    console.log('🔄 Полное обновление...');
+    await loadCourseProgressDetails();
+  }, 300000);
+};
+
+// ✅ Остановка таймеров
+const stopTimers = () => {
+  if (countdownInterval) {
+    clearInterval(countdownInterval);
+    countdownInterval = null;
+  }
+  if (progressRefreshInterval) {
+    clearInterval(progressRefreshInterval);
+    progressRefreshInterval = null;
+  }
+  console.log('⏹️ Таймеры остановлены');
 };
 
 const handleTabChange = (tab) => {

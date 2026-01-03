@@ -155,8 +155,15 @@ export const accountAPI = {
         api.post('/account/password-reset/confirm/', { token, password, password_confirm }),
     getProfile: () => api.get('/account/profile/'),
     updateProfile: (data) => api.patch('/account/profile/', data),
-    // ✅ ДОБАВЛЕНО: logout на backend
+    // logout на backend
     logout: (refreshToken) => api.post('/account/logout/', { refresh: refreshToken }),
+
+    //EgovAuth
+    egovInit: () => api.post('/account/egov/init/'),
+    egovCheckStatus: (sessionId) => api.post('/account/egov/check-status/', {
+        session_id: sessionId
+    }),
+    egovCompleteRegistration: (data) => api.post('/account/egov/complete-registration/', data),
 };
 
 export const coursesAPI = {
