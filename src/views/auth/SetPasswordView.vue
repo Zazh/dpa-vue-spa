@@ -147,15 +147,17 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { accountAPI } from '@/services/api.js';
-import { useAuthStore } from '@/stores/auth'; // ← ДОБАВЛЕНО
+import { useAuthStore } from '@/stores/auth';
 import AuthLayout from "@/layouts/AuthLayout.vue";
 import { usePageMeta } from '@/composables/usePageMeta.js';
+import { useOrderCompletion } from '@/composables/useOrderCompletion.js';
 
 usePageMeta('Установка пароля', 'Создайте надежный пароль для вашего аккаунта');
 
 const router = useRouter();
 const route = useRoute();
-const authStore = useAuthStore(); // ← ДОБАВЛЕНО
+const authStore = useAuthStore();
+const { checkAndCompleteOrder } = useOrderCompletion();
 
 const password = ref('');
 const password_confirm = ref('');
@@ -231,6 +233,16 @@ const handleSetPassword = async () => {
       const result = await authStore.login(userEmail.value, password.value);
 
       if (result.ok) {
+        // 🆕 Проверяем и завершаем оплаченный заказ
+        const orderResult = await checkAndCompleteOrder();
+        if (orderResult.hasOrder) {
+          if (orderResult.success) {
+            console.log('✅ Зачислен на курс:', orderResult.courseName);
+          } else {
+            console.error('❌ Ошибка зачисления:', orderResult.error);
+          }
+        }
+
         // Успешный вход через Store
         setTimeout(() => {
           router.push({ name: 'Dashboard' });

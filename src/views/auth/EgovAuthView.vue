@@ -77,11 +77,13 @@ import { accountAPI } from '@/services/api.js';
 import { useAuthStore } from '@/stores/auth';
 import AuthLayout from '@/layouts/AuthLayout.vue';
 import { usePageMeta } from '@/composables/usePageMeta.js';
+import { useOrderCompletion } from '@/composables/useOrderCompletion.js';
 
 usePageMeta('Вход через eGov Mobile', 'Авторизуйтесь с помощью eGov Mobile');
 
 const router = useRouter();
 const authStore = useAuthStore();
+const { checkAndCompleteOrder } = useOrderCompletion();
 
 // Состояние
 const loading = ref(false);
@@ -151,7 +153,6 @@ const initSession = async () => {
   }
 };
 
-// Polling статуса
 // Polling статуса
 const startPolling = () => {
   pollingInterval = setInterval(async () => {
@@ -230,6 +231,16 @@ const handleCompleted = async (data) => {
         await authStore.ensureAuth();
       } catch (err) {
         console.error('Ошибка загрузки профиля:', err);
+      }
+    }
+
+    // 🆕 Проверяем и завершаем оплаченный заказ
+    const orderResult = await checkAndCompleteOrder();
+    if (orderResult.hasOrder) {
+      if (orderResult.success) {
+        console.log('✅ Зачислен на курс:', orderResult.courseName);
+      } else {
+        console.error('❌ Ошибка зачисления:', orderResult.error);
       }
     }
 

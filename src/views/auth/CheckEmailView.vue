@@ -5,6 +5,18 @@
       <h1 class="h1 font-bold">Добро пожаловать</h1>
     </div>
 
+    <!-- Уведомление об оплате -->
+    <div v-if="hasPaymentOrder" class="mb-6">
+      <div class="p-4 bg-green-50 border border-green-200 rounded-2xl">
+        <p class="text-sm text-green-700 font-medium">
+          ✅ Оплата получена!
+        </p>
+        <p class="text-sm text-green-600 mt-1">
+          Курс «{{ orderData.course_name }}» оплачен на сумму {{ Number(orderData.amount).toLocaleString() }} ₸.
+          Войдите или зарегистрируйтесь для получения доступа.
+        </p>
+      </div>
+    </div>
 
     <form class="authorization-form__body" @submit.prevent="handleSubmit">
       <div class="form">
@@ -75,6 +87,9 @@ import AuthLayout from '@/layouts/AuthLayout.vue';
 import Politics from '@/components/ui/Politics.vue';
 import { usePageMeta } from '@/composables/usePageMeta.js';
 
+import { useOrderCompletion } from '@/composables/useOrderCompletion.js';
+
+
 usePageMeta('Авторизуйтесь', 'Войдите в свой аккаунт для доступа к курсам');
 
 const router = useRouter();
@@ -82,18 +97,31 @@ const email = ref('');
 const error = ref('');
 const loading = ref(false);
 
+const { getOrderData, hasActiveOrder } = useOrderCompletion();
+
+// Данные оплаченного заказа
+const orderData = ref(null);
+const hasPaymentOrder = computed(() => !!orderData.value);
+
 // 🆕 Проверяем наличие реферального токена
 const hasReferralToken = computed(() => {
   return !!localStorage.getItem('referral_token');
 });
 
 // 🆕 При монтировании компонента проверяем referral_token
-onMounted(() => {
-  const referralToken = localStorage.getItem('referral_token');
+onMounted(async () => {
+  // 🆕 Проверяем наличие оплаченного заказа
+  const data = await getOrderData();
+  if (data && data.status === 'paid') {
+    orderData.value = data;
+    email.value = data.email; // Предзаполняем email
+    console.log('✅ Найден оплаченный заказ:', data);
+  }
 
+  // Существующая логика referral_token
+  const referralToken = localStorage.getItem('referral_token');
   if (referralToken) {
     console.log('✅ Обнаружен реферальный токен:', referralToken);
-    // Токен будет использован при регистрации или входе
   }
 });
 

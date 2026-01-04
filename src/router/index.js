@@ -144,6 +144,20 @@ const routes = [
         meta: { requiresAuth: true }
     },
 
+    // Payment должен быть первым (более специфичный путь)
+    {
+        path: '/checkout/pay/:token',
+        name: 'Payment',
+        component: () => import('@/views/checkout/PaymentView.vue'),
+        meta: { title: 'Оплата' }
+    },
+    {
+        path: '/checkout/:courseId',
+        name: 'Checkout',
+        component: () => import('@/views/checkout/CheckoutView.vue'),
+        meta: { title: 'Оформление заказа' }
+    },
+
     // ==================== 404 ====================
     {
         path: '/:pathMatch(.*)*',

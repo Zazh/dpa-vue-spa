@@ -233,4 +233,42 @@ export const graduatesAPI = {
     getCertificate: (id) => api.get(`/graduates/${id}/certificate/`),
 };
 
+// Payments API
+export const paymentsAPI = {
+    // Создать заказ
+    createOrder(data) {
+        return api.post('/payments/orders/create/', data);
+    },
+
+    // Получить статус заказа (для polling)
+    getOrderStatus(token) {
+        return api.get(`/payments/orders/${token}/status/`);
+    },
+
+    // Получить информацию о заказе
+    getOrderInfo(token) {
+        return api.get(`/payments/orders/${token}/info/`);
+    },
+
+    // Данные для страницы оплаты
+    getPaymentData(token) {
+        return api.get(`/payments/orders/${token}/payment-data/`);
+    },
+
+    // Завершить заказ (после авторизации)
+    completeOrder(token) {
+        return api.post(`/payments/orders/${token}/complete/`);
+    },
+
+    // Информация о курсе для покупки
+    getCourseInfo(courseId) {
+        return api.get(`/payments/courses/${courseId}/purchase-info/`);
+    },
+
+    // [DEV ONLY] Симуляция оплаты
+    simulatePayment(token) {
+        return api.post(`/payments/orders/${token}/simulate-payment/`);
+    },
+};
+
 export default api;

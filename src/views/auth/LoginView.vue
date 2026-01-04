@@ -66,14 +66,17 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { groupsAPI } from '@/services/api.js';
-import { useAuthStore } from '@/stores/auth'; // ← ДОБАВЛЕНО
+import { useAuthStore } from '@/stores/auth';
 import AuthLayout from '@/layouts/AuthLayout.vue';
 import { usePageMeta } from '@/composables/usePageMeta.js';
+import { useOrderCompletion } from '@/composables/useOrderCompletion.js';
+
 
 usePageMeta('Введите пароль от существующего аккаунта', 'Войдите в свой пароль для доступа к курсам');
 
 const router = useRouter();
-const authStore = useAuthStore(); // ← ДОБАВЛЕНО
+const authStore = useAuthStore();
+const { checkAndCompleteOrder } = useOrderCompletion();
 
 const email = ref('');
 const password = ref('');
@@ -113,6 +116,14 @@ const handleLogin = async () => {
     }
 
     // Store уже сохранил токены и пользователя!
+    const orderResult = await checkAndCompleteOrder();
+    if (orderResult.hasOrder) {
+      if (orderResult.success) {
+        console.log('✅ Зачислен на курс:', orderResult.courseName);
+      } else {
+        console.error('❌ Ошибка зачисления:', orderResult.error);
+      }
+    }
 
     // Проверяем наличие referral_token
     const referralToken = localStorage.getItem('referral_token');
