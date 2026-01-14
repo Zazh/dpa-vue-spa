@@ -81,7 +81,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { accountAPI } from '@/services/api.js';
 import AuthLayout from '@/layouts/AuthLayout.vue';
 import Politics from '@/components/ui/Politics.vue';
@@ -93,6 +93,7 @@ import { useOrderCompletion } from '@/composables/useOrderCompletion.js';
 usePageMeta('Авторизуйтесь', 'Войдите в свой аккаунт для доступа к курсам');
 
 const router = useRouter();
+const route = useRoute();
 const email = ref('');
 const error = ref('');
 const loading = ref(false);
@@ -110,11 +111,18 @@ const hasReferralToken = computed(() => {
 
 // 🆕 При монтировании компонента проверяем referral_token
 onMounted(async () => {
-  // 🆕 Проверяем наличие оплаченного заказа
+  // 🆕 Проверяем order_token в URL (для перехода с другого устройства)
+  const urlOrderToken = route.query.order_token;
+  if (urlOrderToken) {
+    localStorage.setItem('payment_order_token', urlOrderToken);
+    console.log('✅ Order token получен из URL:', urlOrderToken);
+  }
+
+  // Проверяем наличие оплаченного заказа
   const data = await getOrderData();
   if (data && data.status === 'paid') {
     orderData.value = data;
-    email.value = data.email; // Предзаполняем email
+    email.value = data.email;
     console.log('✅ Найден оплаченный заказ:', data);
   }
 
