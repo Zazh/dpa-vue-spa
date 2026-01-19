@@ -50,31 +50,31 @@
         </div>
 
         <!-- Прогресс просмотра -->
-<!--        <div v-if="!progress.is_completed" class="col-span-full md:col-span-8 md:col-start-3 pt-4">-->
-<!--          <div class="bg-gray-100 rounded-lg p-4">-->
-<!--            <div class="flex justify-between mb-2">-->
-<!--              <span class="text-sm font-medium">Просмотрено</span>-->
-<!--              <span class="text-sm font-medium">{{ Math.round(currentProgress) }}%</span>-->
-<!--            </div>-->
-<!--            <div class="w-full bg-gray-300 rounded-full h-2">-->
-<!--              <div-->
-<!--                  class="bg-blue-600 h-2 rounded-full transition-all duration-300"-->
-<!--                  :style="{ width: currentProgress + '%' }"-->
-<!--              ></div>-->
-<!--            </div>-->
-<!--            <p class="text-xs text-gray-600 mt-2">-->
-<!--              Для завершения урока необходимо просмотреть минимум {{ video.completion_threshold }}%-->
-<!--            </p>-->
-<!--          </div>-->
-<!--        </div>-->
+        <!--        <div v-if="!progress.is_completed" class="col-span-full md:col-span-8 md:col-start-3 pt-4">-->
+        <!--          <div class="bg-gray-100 rounded-lg p-4">-->
+        <!--            <div class="flex justify-between mb-2">-->
+        <!--              <span class="text-sm font-medium">Просмотрено</span>-->
+        <!--              <span class="text-sm font-medium">{{ Math.round(currentProgress) }}%</span>-->
+        <!--            </div>-->
+        <!--            <div class="w-full bg-gray-300 rounded-full h-2">-->
+        <!--              <div-->
+        <!--                  class="bg-blue-600 h-2 rounded-full transition-all duration-300"-->
+        <!--                  :style="{ width: currentProgress + '%' }"-->
+        <!--              ></div>-->
+        <!--            </div>-->
+        <!--            <p class="text-xs text-gray-600 mt-2">-->
+        <!--              Для завершения урока необходимо просмотреть минимум {{ video.completion_threshold }}%-->
+        <!--            </p>-->
+        <!--          </div>-->
+        <!--        </div>-->
 
         <!-- Уведомление о завершении -->
-<!--        <div v-if="progress.is_completed" class="col-span-full md:col-span-8 md:col-start-3 pt-4">-->
-<!--          <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative">-->
-<!--            <strong class="font-bold">✅ Урок завершен!</strong>-->
-<!--            <span class="block sm:inline"> Вы можете пересмотреть материал в любое время.</span>-->
-<!--          </div>-->
-<!--        </div>-->
+        <!--        <div v-if="progress.is_completed" class="col-span-full md:col-span-8 md:col-start-3 pt-4">-->
+        <!--          <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative">-->
+        <!--            <strong class="font-bold">✅ Урок завершен!</strong>-->
+        <!--            <span class="block sm:inline"> Вы можете пересмотреть материал в любое время.</span>-->
+        <!--          </div>-->
+        <!--        </div>-->
 
         <div class="col-span-full md:col-span-8 md:col-start-3 flex flex-wrap gap-12 pb-12">
           <!-- Таймкоды - ТОЛЬКО для завершенных уроков -->
@@ -121,9 +121,9 @@
               >
 
                 <a :href="material.file || material.url"
-                :download="material.file ? true : false"
-                target="_blank"
-                class="flex gap-4 items-center py-4 px-4 w-full"
+                   :download="material.file ? true : false"
+                   target="_blank"
+                   class="flex gap-4 items-center py-4 px-4 w-full"
                 >
                 <span class="text-blue-600">
                     <svg class="h-7" viewBox="0 0 36 44" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -133,13 +133,13 @@
                       <path d="M30.3243 21.6232H25.0729C24.4363 21.6232 24.0534 22.0373 24.0534 22.6574V31.3005C24.0534 32.0491 24.5476 32.5425 25.2317 32.5425C25.8993 32.5425 26.3935 32.0492 26.3935 31.3005V28.2125C26.3935 28.1494 26.4245 28.1175 26.4884 28.1175H29.5453C30.2294 28.1175 30.627 27.7036 30.627 27.1144C30.627 26.5252 30.2294 26.1121 29.5453 26.1121H26.4884C26.4245 26.1121 26.3935 26.0802 26.3935 26.0164V23.74C26.3935 23.6761 26.4245 23.6444 26.4884 23.6444H30.3243C30.9773 23.6444 31.4077 23.2148 31.4077 22.6421C31.4076 22.0527 30.9771 21.6232 30.3243 21.6232Z" fill="currentColor"/>
                     </svg>
                   </span>
-                <ul class="flex flex-col text-sm gap-1 font-medium">
-                  <li class="leading-tight">{{ material.title }}</li>
-                  <li v-if="material.description" class="leading-tight text-xs text-gray-700">
-                    {{ material.description }}
-                  </li>
-                </ul>
-                <span class="ml-auto text-blue-600">
+                  <ul class="flex flex-col text-sm gap-1 font-medium">
+                    <li class="leading-tight">{{ material.title }}</li>
+                    <li v-if="material.description" class="leading-tight text-xs text-gray-700">
+                      {{ material.description }}
+                    </li>
+                  </ul>
+                  <span class="ml-auto text-blue-600">
                     <svg class="h-7" viewBox="0 0 27 27" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path fill-rule="evenodd" clip-rule="evenodd" d="M0 13.3333C0 7.04793 -1.19209e-07 3.90524 1.95263 1.95263C3.90524 -1.19209e-07 7.04793 0 13.3333 0C19.6187 0 22.7615 -1.19209e-07 24.714 1.95263C26.6667 3.90524 26.6667 7.04793 26.6667 13.3333C26.6667 19.6187 26.6667 22.7615 24.714 24.714C22.7615 26.6667 19.6187 26.6667 13.3333 26.6667C7.04793 26.6667 3.90524 26.6667 1.95263 24.714C-1.19209e-07 22.7615 0 19.6187 0 13.3333ZM13.3333 5.66667C13.8856 5.66667 14.3333 6.11439 14.3333 6.66667V13.5857L16.6263 11.2929C17.0168 10.9024 17.6499 10.9024 18.0404 11.2929C18.4309 11.6835 18.4309 12.3165 18.0404 12.7071L14.0404 16.7071C13.8529 16.8947 13.5985 17 13.3333 17C13.0681 17 12.8137 16.8947 12.6263 16.7071L8.62623 12.7071C8.23571 12.3165 8.23571 11.6835 8.62623 11.2929C9.01675 10.9024 9.64992 10.9024 10.0404 11.2929L12.3333 13.5857V6.66667C12.3333 6.11439 12.7811 5.66667 13.3333 5.66667ZM8 19C7.44772 19 7 19.4477 7 20C7 20.5523 7.44772 21 8 21H18.6667C19.2189 21 19.6667 20.5523 19.6667 20C19.6667 19.4477 19.2189 19 18.6667 19H8Z" fill="currentColor"/>
                     </svg>
@@ -181,16 +181,46 @@ const videoFrame = ref(null);
 let player = null;
 let lessonCompleted = false;
 let lastUpdateTime = 0;
+let wasPlayingBeforeHidden = false;
+
 
 usePageMeta('Страница урока', 'Личный кабинет');
 
+
+// Обработка видимости вкладки (пауза при переключении)
+function handleVisibilityChange() {
+  if (!player) return;
+
+  if (document.hidden) {
+    // Вкладка скрыта — ставим на паузу если играло
+    player.getPaused().then(paused => {
+      if (!paused) {
+        wasPlayingBeforeHidden = true;
+        player.pause();
+        console.log('⏸️ Видео приостановлено (вкладка скрыта)');
+      }
+    });
+  } else {
+    // Вкладка снова активна — возобновляем если играло до этого
+    if (wasPlayingBeforeHidden) {
+      wasPlayingBeforeHidden = false;
+      player.play();
+      console.log('▶️ Видео возобновлено (вкладка активна)');
+    }
+  }
+}
+
 // Загрузка урока
 onMounted(async () => {
+  document.addEventListener('visibilitychange', handleVisibilityChange);
   await loadLesson();
 });
 
 // Очистка при размонтировании
 onUnmounted(() => {
+  // Удаляем слушатель видимости вкладки
+  document.removeEventListener('visibilitychange', handleVisibilityChange);
+
   if (player) {
     player.off('timeupdate');
     player = null;
