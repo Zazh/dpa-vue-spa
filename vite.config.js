@@ -1,3 +1,4 @@
+// vite.config.js - добавить
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import { fileURLToPath, URL } from 'node:url';
@@ -19,5 +20,9 @@ export default defineConfig({
                 secure: false,
             }
         }
+    },
+    // Удаление console.log в production
+    esbuild: {
+        drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : [],
     }
 });

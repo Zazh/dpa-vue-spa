@@ -130,8 +130,6 @@
 
 
           <!-- карточка сертификата -->
-
-
           <article
               v-for="graduation in graduations"
               :key="graduation.id"

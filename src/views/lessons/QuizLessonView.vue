@@ -403,7 +403,7 @@
             <!-- Кнопки действий -->
             <div class="flex gap-4">
               <button
-                  v-if="quiz.can_attempt?.allowed"
+                  v-if="quiz.can_attempt?.allowed && !results.passed"
                   @click="resetQuiz"
                   class="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700"
               >
@@ -681,7 +681,6 @@ async function submitQuiz() {
     console.log('Отправка ответов:', answers);
 
     const response = await quizzesAPI.submitAnswers(currentAttemptId.value, answers);
-
     results.value = response.data;
     currentScreen.value = 'results';
 

@@ -98,7 +98,6 @@
     </div>
 
     <!-- Card footer (условно в зависимости от состояния) -->
-    <!-- Card footer (условно в зависимости от состояния) -->
     <div
         v-if="showFooter"
         class="card_footer"

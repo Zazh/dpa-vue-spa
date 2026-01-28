@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview --open"
+    "preview": "vite preview --open",
+    "prod": "vite build && rsync -avz --delete -e 'ssh -i ~/.ssh/id_ed25519' dist/ ubuntu@185.146.1.119:/home/ubuntu/dpa/lms-frontend/"
   },
   "dependencies": {
     "@sentry/vue": "^10.26.0",
