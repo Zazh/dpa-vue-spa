@@ -422,29 +422,28 @@ const loadCourses = async () => {
   try {
     console.log('📚 Начало загрузки курсов...');
 
-    const allCoursesResponse = await coursesAPI.getAllCourses();
-    allCourses.value = allCoursesResponse.data;
+    // ✅ Параллельно загружаем все курсы и мои курсы
+    const [allCoursesResponse, myCoursesResponse] = await Promise.all([
+      coursesAPI.getAllCourses(),
+      coursesAPI.getMyCourses()
+    ]);
 
-    const myCoursesResponse = await coursesAPI.getMyCourses();
+    allCourses.value = allCoursesResponse.data;
     myCourses.value = myCoursesResponse.data;
 
-    await loadCourseProgressDetails();
-
+    // ✅ Сразу показываем курсы, прогресс догрузим фоном
     if (myCourses.value.length === 0) {
       activeTab.value = 'all';
     } else {
       activeTab.value = 'my';
     }
 
+    // ✅ Прогресс загружаем фоном (не блокируем UI)
+    loadCourseProgressDetails();
+
   } catch (err) {
     console.error('❌ ОШИБКА загрузки курсов:', err);
-
-    if (err.response?.status === 404) {
-      coursesError.value = 'Эндпоинты не найдены. Проверьте URL в Django';
-    } else {
-      coursesError.value = err.response?.data?.detail || 'Не удалось загрузить курсы';
-    }
-    // ✅ УПРОСТИЛИ: убрали обработку 401 - interceptor сам перенаправит
+    coursesError.value = err.response?.data?.detail || 'Не удалось загрузить курсы';
   } finally {
     coursesLoading.value = false;
   }
