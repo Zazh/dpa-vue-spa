@@ -3,7 +3,7 @@
     <section class="hero py-6">
       <h1 class="display-1">
         <span id="hero-welcome">{{ greeting }}</span>,
-        <span class="capitalize" id="hero-student-name">{{ user?.first_name || 'Не указано' }}</span>
+        <span id="hero-student-name">{{ formattedName }}</span>
       </h1>
     </section>
 
@@ -526,6 +526,18 @@ const stopTimers = () => {
   }
   console.log('⏹️ Таймеры остановлены');
 };
+
+// Форматированное имя (каждое слово с заглавной буквы)
+const formattedName = computed(() => {
+  const name = user.value?.first_name;
+  if (!name) return 'Не указано';
+
+  return name
+      .toLowerCase()
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+});
 
 const handleTabChange = (tab) => {
   console.log('🔄 КЛИК на вкладку:', tab);
