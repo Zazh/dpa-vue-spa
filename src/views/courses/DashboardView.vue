@@ -213,7 +213,6 @@ const myCourses = ref([]);
 const coursesLoading = ref(true);
 const coursesError = ref('');
 
-const courseProgressDetails = ref({});
 
 // Уведомления о присоединении
 const joinedMessage = ref('');
@@ -224,7 +223,6 @@ const graduations = ref([]);
 const graduationsLoading = ref(false);
 
 // Таймеры
-let progressRefreshInterval = null;
 let countdownInterval = null;
 const currentTime = ref(Date.now());
 
@@ -243,56 +241,24 @@ const greeting = computed(() => {
   }
 });
 
-// Форматирование оставшегося времени
-const formatTimeRemaining = (availableAt) => {
-  if (!availableAt) return null;
-
-  const targetTime = new Date(availableAt).getTime();
-  const remaining = targetTime - currentTime.value;
-
-  if (remaining <= 0) return null; // Время истекло
-
-  const hours = Math.floor(remaining / (1000 * 60 * 60));
-  const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
-
-  if (hours > 24) {
-    const days = Math.floor(hours / 24);
-    return `${days} д. ${hours % 24} ч.`;
-  }
-
-  if (hours > 0) {
-    return `${hours} ч. ${minutes} мин.`;
-  }
-
-  return `${minutes} мин.`;
-};
 
 // Обогащенные курсы с деталями прогресса
 const enrichedMyCourses = computed(() => {
-  // ✅ Явно используем currentTime чтобы Vue отслеживал зависимость
   const now = currentTime.value;
 
-  console.log('🔄 Обогащение курсов, время:', new Date(now).toLocaleTimeString());
-
   return myCourses.value.map(course => {
-    const courseId = course.course.id;
-    const progressDetail = courseProgressDetails.value[courseId];
+    // ✅ Данные теперь приходят напрямую из API
+    const nextLocked = course.next_lesson_available_at;
 
-    if (!progressDetail) {
-      return course;
-    }
-
-    const nextLockedLesson = findNextLockedLesson(progressDetail);
-
-    // ✅ Передаем now напрямую
     let timeRemaining = null;
-    if (nextLockedLesson?.available_at) {
-      const targetTime = new Date(nextLockedLesson.available_at).getTime();
+    let isNowAvailable = false;
+
+    if (nextLocked?.available_at) {
+      const targetTime = new Date(nextLocked.available_at).getTime();
       const remaining = targetTime - now;
 
       if (remaining <= 0) {
-        nextLockedLesson.is_now_available = true;
-        timeRemaining = null;
+        isNowAvailable = true;
       } else {
         timeRemaining = formatTimeFromMs(remaining);
       }
@@ -300,14 +266,19 @@ const enrichedMyCourses = computed(() => {
 
     return {
       ...course,
-      nextLockedLesson: nextLockedLesson,
+      nextLockedLesson: nextLocked ? {
+        id: nextLocked.lesson_id,
+        title: nextLocked.lesson_title,
+        available_at: nextLocked.available_at,
+        is_now_available: isNowAvailable
+      } : null,
       timeRemaining: timeRemaining,
-      has_access: !nextLockedLesson || nextLockedLesson.is_now_available
+      has_access: !nextLocked || isNowAvailable
     };
   });
 });
 
-// ✅ Вспомогательная функция форматирования
+// Вспомогательная функция форматирования
 const formatTimeFromMs = (ms) => {
   const hours = Math.floor(ms / (1000 * 60 * 60));
   const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
@@ -324,54 +295,7 @@ const formatTimeFromMs = (ms) => {
   return `${minutes} мин.`;
 };
 
-// Функция поиска следующего заблокированного урока
-const findNextLockedLesson = (progressDetail) => {
-  console.log('🔍 Поиск заблокированного урока в прогрессе:', progressDetail);
 
-  if (!progressDetail.modules) {
-    console.log('⚠️ Нет модулей в прогрессе');
-    return null;
-  }
-
-  for (const module of progressDetail.modules) {
-    console.log(`📦 Модуль: ${module.title}`);
-
-    for (const lessonProgress of module.lessons) {
-      console.log(`  📝 Урок: ${lessonProgress.lesson.title}`);
-      console.log(`     - is_completed: ${lessonProgress.is_completed}`);
-      console.log(`     - is_available: ${lessonProgress.is_available}`);
-
-      if (lessonProgress.is_completed) {
-        console.log(`     ✓ Урок завершен, пропускаем`);
-        continue;
-      }
-
-      console.log(`     → Это первый незавершенный урок`);
-
-      if (!lessonProgress.is_available) {
-        console.log(`  🔒 ЗАБЛОКИРОВАННЫЙ УРОК:`, {
-          id: lessonProgress.lesson.id,
-          title: lessonProgress.lesson.title,
-          available_at: lessonProgress.available_at,
-          available_in: lessonProgress.available_in
-        });
-
-        return {
-          id: lessonProgress.lesson.id,
-          title: lessonProgress.lesson.title,
-          available_at: lessonProgress.available_at,
-          available_in: lessonProgress.available_in
-        };
-      }
-
-      console.log(`     ✅ Урок доступен, НЕ заблокирован`);
-      return null;
-    }
-  }
-
-  console.log('✅ Заблокированных уроков не найдено');
-  return null;
-};
 
 // Открыть сертификат
 const openCertificate = (url) => {
@@ -422,7 +346,7 @@ const loadCourses = async () => {
   try {
     console.log('📚 Начало загрузки курсов...');
 
-    // ✅ Параллельно загружаем все курсы и мои курсы
+    // загружаем все курсы и мои курсы
     const [allCoursesResponse, myCoursesResponse] = await Promise.all([
       coursesAPI.getAllCourses(),
       coursesAPI.getMyCourses()
@@ -438,8 +362,6 @@ const loadCourses = async () => {
       activeTab.value = 'my';
     }
 
-    // ✅ Прогресс загружаем фоном (не блокируем UI)
-    loadCourseProgressDetails();
 
   } catch (err) {
     console.error('❌ ОШИБКА загрузки курсов:', err);
@@ -449,25 +371,7 @@ const loadCourses = async () => {
   }
 };
 
-const loadCourseProgressDetails = async () => {
-  console.log('🔍 Загрузка детального прогресса...');
 
-  const progressPromises = myCourses.value.map(async (course) => {
-    const courseId = course.course.id;
-
-    try {
-      console.log(`📊 Загрузка прогресса для курса ${courseId}...`);
-      const response = await coursesAPI.getCourseProgress(courseId);
-      courseProgressDetails.value[courseId] = response.data;
-      console.log(`✅ Прогресс курса ${courseId}:`, response.data);
-    } catch (err) {
-      console.error(`❌ Ошибка загрузки прогресса курса ${courseId}:`, err);
-    }
-  });
-
-  await Promise.all(progressPromises);
-  console.log('✅ Все детальные прогрессы загружены:', courseProgressDetails.value);
-};
 
 const loadGraduations = async () => {
   try {
@@ -488,42 +392,20 @@ const loadGraduations = async () => {
   }
 };
 
-// ✅ Запуск таймеров
+// Запуск таймеров
 const startTimers = () => {
-  // ✅ Для тестирования: 10 секунд вместо 60
+  // Обновляем время каждую минуту для countdown
   countdownInterval = setInterval(() => {
     currentTime.value = Date.now();
-    console.log('⏱️ Tick:', new Date().toLocaleTimeString());
-
-    // Проверяем, не истекло ли время
-    const hasExpiredLock = enrichedMyCourses.value.some(
-        course => course.nextLockedLesson?.is_now_available
-    );
-
-    if (hasExpiredLock) {
-      console.log('🔓 Время блокировки истекло!');
-      loadCourseProgressDetails();
-    }
-  }, 10000); // 10 секунд для теста, потом верни 60000
-
-  // Полное обновление каждые 5 минут
-  progressRefreshInterval = setInterval(async () => {
-    console.log('🔄 Полное обновление...');
-    await loadCourseProgressDetails();
-  }, 300000);
+  }, 60000);
 };
 
-// ✅ Остановка таймеров
+// Остановка таймеров
 const stopTimers = () => {
   if (countdownInterval) {
     clearInterval(countdownInterval);
     countdownInterval = null;
   }
-  if (progressRefreshInterval) {
-    clearInterval(progressRefreshInterval);
-    progressRefreshInterval = null;
-  }
-  console.log('⏹️ Таймеры остановлены');
 };
 
 // Форматированное имя (каждое слово с заглавной буквы)
