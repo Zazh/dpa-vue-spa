@@ -135,8 +135,22 @@
 
             </div>
 
-            <!-- Проверка возможности прохождения -->
-            <div v-if="!quiz.can_attempt.allowed" class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <!-- Тест уже сдан — зелёный блок -->
+            <div v-if="!quiz.can_attempt.allowed && quiz.can_attempt.message === 'Тест уже сдан'" class="bg-green-50 border border-green-200 rounded-lg p-4">
+              <div class="flex items-center gap-3">
+                <svg class="w-6 h-6 text-green-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                </svg>
+                <div class="flex-1">
+                  <p class="text-green-800 font-medium">
+                    {{ quiz.can_attempt.message }}. Результат: {{ Math.round(passedAttempt?.score_percentage) }}%
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Ожидание / лимит исчерпан — жёлтый блок -->
+            <div v-else-if="!quiz.can_attempt.allowed" class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
               <div class="flex items-center gap-3">
                 <svg class="w-6 h-6 text-yellow-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
@@ -147,7 +161,7 @@
                     Повторная попытка через:
                     <span class="font-mono text-lg font-bold">{{ formatRetryTime(retryCountdown) }}</span>
                   </p>
-                  <!-- Без таймера (лимит исчерпан, тест сдан) -->
+                  <!-- Без таймера (лимит исчерпан) -->
                   <p v-else class="text-yellow-800 font-medium">{{ quiz.can_attempt.message }}</p>
                 </div>
               </div>
@@ -415,8 +429,8 @@
                     К сожалению, время на прохождение теста закончилось. Попытка засчитана как неуспешная.
                     <br>
                     <span v-if="quiz.can_attempt?.allowed" class="text-sm text-yellow-700 mt-2">
-          Осталось попыток: <strong>{{ quiz.max_attempts - quiz.user_attempts_count }}</strong>
-        </span>
+                      Осталось попыток: <strong>{{ quiz.max_attempts - quiz.user_attempts_count }}</strong>
+                    </span>
                   </p>
                 </div>
               </div>
@@ -530,6 +544,13 @@ usePageMeta('Тест', 'Личный кабинет');
 
 const currentQuestion = computed(() => questions.value[currentQuestionIndex.value]);
 
+// Найти успешно сданную попытку
+const passedAttempt = computed(() => {
+  return attemptHistory.value.find(
+      attempt => attempt.status === 'completed' &&
+          parseFloat(attempt.score_percentage) >= quiz.value?.passing_score
+  );
+});
 
 // Предупреждение при попытке уйти во время теста
 function handleBeforeUnload(e) {
