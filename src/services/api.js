@@ -19,6 +19,23 @@ let isRefreshing = false;
 // Очередь запросов, ожидающих обновления токена
 let failedQueue = [];
 
+// ============================================
+// СИНХРОНИЗАЦИЯ ТОКЕНОВ МЕЖДУ ВКЛАДКАМИ
+// ============================================
+window.addEventListener('storage', (event) => {
+    // Если токен обновился в другой вкладке — обрабатываем очередь
+    if (event.key === 'access_token' && event.newValue) {
+        console.log('🔄 Токен обновлён в другой вкладке');
+        processQueue(null, event.newValue);
+    }
+
+    // Если пользователь вышел в другой вкладке
+    if (event.key === 'access_token' && !event.newValue) {
+        console.log('🚪 Выход в другой вкладке, перенаправляем...');
+        window.location.href = '/';
+    }
+});
+
 const processQueue = (error, token = null) => {
     failedQueue.forEach(prom => {
         if (error) {
@@ -89,6 +106,17 @@ api.interceptors.response.use(
             originalRequest._retry = true;
             isRefreshing = true;
 
+            // Проверяем, может токен уже обновился в другой вкладке
+            const currentAccessToken = localStorage.getItem('access_token');
+            const originalToken = originalRequest.headers.Authorization?.replace('Bearer ', '');
+
+            if (currentAccessToken && currentAccessToken !== originalToken) {
+                console.log('✅ Токен уже обновлён в другой вкладке');
+                isRefreshing = false;
+                originalRequest.headers.Authorization = `Bearer ${currentAccessToken}`;
+                return api(originalRequest);
+            }
+
             const refreshToken = localStorage.getItem('refresh_token');
 
             if (!refreshToken) {
@@ -106,8 +134,14 @@ api.interceptors.response.use(
                     refresh: refreshToken
                 });
 
-                const { access } = response.data;
+                const { access, refresh } = response.data;  // ← Добавь refresh
                 localStorage.setItem('access_token', access);
+
+                // сохраняем новый refresh token
+                if (refresh) {
+                    localStorage.setItem('refresh_token', refresh);
+                }
+
                 console.log('✅ Токен успешно обновлен!');
 
                 processQueue(null, access);
