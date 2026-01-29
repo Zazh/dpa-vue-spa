@@ -115,7 +115,7 @@
                   <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                   </svg>
-                  <span>Проходной балл: <strong>{{ quiz.passing_score }}%</strong></span>
+                  <span>Проходной балл: <strong>{{ parseFloat(quiz.passing_score) }}%</strong></span>
                 </div>
 
                 <div class="flex items-center gap-2">
@@ -175,13 +175,13 @@
                   <div>
                     <p class="font-medium">Попытка #{{ attempt.attempt_number }}</p>
                     <p class="text-sm text-gray-500">
-                      {{ new Date(attempt.started_at).toLocaleString('ru-RU') }}
+                      {{ new Date(attempt.started_at).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) }}
                     </p>
                   </div>
                   <div class="text-right">
                     <!-- Завершён успешно -->
                     <p v-if="attempt.status === 'completed'" class="font-bold" :class="parseFloat(attempt.score_percentage) >= quiz.passing_score ? 'text-green-600' : 'text-red-600'">
-                      {{ attempt.score_percentage }}%
+                      {{ parseFloat(attempt.score_percentage) }}%
                     </p>
                     <!-- Время истекло -->
                     <p v-else-if="attempt.status === 'timeout'" class="text-sm font-medium text-red-600">
@@ -189,7 +189,12 @@
                     </p>
                     <!-- В процессе -->
                     <p v-else class="text-sm text-yellow-600">В процессе</p>
-                    <p class="text-xs text-gray-500">{{ attempt.duration.formatted }}</p>
+                    <p class="text-sm text-gray-500 font-medium flex gap-1 items-center justify-end">
+                      <span>
+<!--                        Длительность:-->
+                      </span>
+                      <span class="leading-none">{{ attempt.duration.formatted }}</span>
+                    </p>
                   </div>
                 </div>
               </div>
@@ -204,7 +209,7 @@
               <div class="flex justify-between items-center mb-2">
                 <span class="text-sm font-medium">Вопрос {{ currentQuestionIndex + 1 }} из {{ questions.length }}</span>
                 <span v-if="timeRemaining !== null" class="text-sm font-medium" :class="timeRemaining < 60 ? 'text-red-600' : 'text-gray-600'">
-                  ⏱ {{ formatTime(timeRemaining) }}
+                  {{ formatTime(timeRemaining) }}
                 </span>
               </div>
               <div class="w-full bg-gray-200 rounded-full h-2">
@@ -317,7 +322,7 @@
               </p>
 
               <p class="text-gray-600 pt-2">
-                Проходной балл: {{ results.passing_score }}%
+                Проходной балл: {{ parseFloat(results.passing_score) }}%
               </p>
 
               <p v-if="!results.time_expired" class="text-sm text-gray-600">
@@ -442,7 +447,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router';
 import { lessonsAPI, quizzesAPI } from '@/services/api';
 import MainLayout from '@/layouts/MainLayout.vue';
 import { usePageMeta } from '@/composables/usePageMeta';
@@ -525,14 +530,44 @@ usePageMeta('Тест', 'Личный кабинет');
 
 const currentQuestion = computed(() => questions.value[currentQuestionIndex.value]);
 
+
+// Предупреждение при попытке уйти во время теста
+function handleBeforeUnload(e) {
+  if (currentScreen.value === 'taking') {
+    e.preventDefault();
+    e.returnValue = 'Тест в процессе! Если вы уйдёте, попытка будет не засчитана.';
+    return e.returnValue;
+  }
+}
+
 onMounted(async () => {
   await loadLesson();
   await loadAttemptHistory();
+
+  // Предупреждение при закрытии вкладки
+  window.addEventListener('beforeunload', handleBeforeUnload);
+
 });
 
 onUnmounted(() => {
   clearTimer();
   clearRetryTimer();
+
+  window.removeEventListener('beforeunload', handleBeforeUnload);
+});
+
+// Предупреждение при переходе на другую страницу
+onBeforeRouteLeave((to, from, next) => {
+  if (currentScreen.value === 'taking') {
+    const answer = window.confirm('Тест в процессе! Если вы уйдёте, попытка будет не засчитана. Вы уверены?');
+    if (answer) {
+      next();
+    } else {
+      next(false);
+    }
+  } else {
+    next();
+  }
 });
 
 // Загрузить урок
