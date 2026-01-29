@@ -136,8 +136,21 @@
             </div>
 
             <!-- Проверка возможности прохождения -->
-            <div v-if="!quiz.can_attempt.allowed" class="bg-red-50 border border-red-200 rounded-lg p-4">
-              <p class="text-red-700 font-medium">{{ quiz.can_attempt.message }}</p>
+            <div v-if="!quiz.can_attempt.allowed" class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <div class="flex items-center gap-3">
+                <svg class="w-6 h-6 text-yellow-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                </svg>
+                <div class="flex-1">
+                  <!-- С таймером обратного отсчёта -->
+                  <p v-if="retryCountdown !== null" class="text-yellow-800 font-medium">
+                    Повторная попытка через:
+                    <span class="font-mono text-lg font-bold">{{ formatRetryTime(retryCountdown) }}</span>
+                  </p>
+                  <!-- Без таймера (лимит исчерпан, тест сдан) -->
+                  <p v-else class="text-yellow-800 font-medium">{{ quiz.can_attempt.message }}</p>
+                </div>
+              </div>
             </div>
 
             <!-- Кнопка старта -->
@@ -166,9 +179,15 @@
                     </p>
                   </div>
                   <div class="text-right">
+                    <!-- Завершён успешно -->
                     <p v-if="attempt.status === 'completed'" class="font-bold" :class="parseFloat(attempt.score_percentage) >= quiz.passing_score ? 'text-green-600' : 'text-red-600'">
                       {{ attempt.score_percentage }}%
                     </p>
+                    <!-- Время истекло -->
+                    <p v-else-if="attempt.status === 'timeout'" class="text-sm font-medium text-red-600">
+                      Время истекло
+                    </p>
+                    <!-- В процессе -->
                     <p v-else class="text-sm text-yellow-600">В процессе</p>
                     <p class="text-xs text-gray-500">{{ attempt.duration.formatted }}</p>
                   </div>
@@ -494,6 +513,9 @@ const currentQuestionIndex = ref(0);
 const userAnswers = ref({}); // { questionId: [answerIds] }
 const timeRemaining = ref(null);
 const timerInterval = ref(null);
+// Таймер ожидания повторной попытки
+const retryCountdown = ref(null);
+const retryTimerInterval = ref(null);
 
 // Отправка и результаты
 const submitting = ref(false);
@@ -510,6 +532,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
   clearTimer();
+  clearRetryTimer();
 });
 
 // Загрузить урок
@@ -526,6 +549,11 @@ async function loadLesson() {
     quiz.value = response.data.quiz;
 
     console.log('✅ Квиз загружен:', quiz.value);
+
+    // Запускаем таймер ожидания если есть
+    if (quiz.value?.can_attempt?.available_at) {
+      startRetryTimer(quiz.value.can_attempt.available_at);
+    }
 
   } catch (err) {
     console.error('❌ Ошибка загрузки урока:', err);
@@ -599,6 +627,47 @@ function clearTimer() {
 }
 
 function formatTime(seconds) {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
+// Таймер ожидания повторной попытки
+function startRetryTimer(availableAt) {
+  clearRetryTimer();
+
+  const targetTime = new Date(availableAt).getTime();
+
+  const updateCountdown = () => {
+    const now = Date.now();
+    const remaining = Math.max(0, Math.floor((targetTime - now) / 1000));
+
+    if (remaining <= 0) {
+      clearRetryTimer();
+      retryCountdown.value = null;
+      // Автоматически разблокируем кнопку
+      quiz.value.can_attempt = {
+        allowed: true,
+        message: 'Можно начать тест',
+        available_at: null
+      };
+    } else {
+      retryCountdown.value = remaining;
+    }
+  };
+
+  updateCountdown();
+  retryTimerInterval.value = setInterval(updateCountdown, 1000);
+}
+
+function clearRetryTimer() {
+  if (retryTimerInterval.value) {
+    clearInterval(retryTimerInterval.value);
+    retryTimerInterval.value = null;
+  }
+}
+
+function formatRetryTime(seconds) {
   const mins = Math.floor(seconds / 60);
   const secs = seconds % 60;
   return `${mins}:${secs.toString().padStart(2, '0')}`;
