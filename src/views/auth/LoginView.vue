@@ -106,7 +106,7 @@ const handleLogin = async () => {
   loading.value = true;
 
   try {
-    // ✅ ИЗМЕНЕНО: используем authStore вместо accountAPI
+    // используем authStore вместо accountAPI
     const result = await authStore.login(email.value, password.value);
 
     if (!result.ok) {

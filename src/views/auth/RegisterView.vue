@@ -161,7 +161,7 @@
                     peer-focus:top-4 peer-focus:text-xs
                     peer-[:not(:placeholder-shown)]:top-4 peer-[:not(:placeholder-shown)]:text-xs
                     transition-all duration-200 pointer-events-none">
-              Телефон
+              Телефон <span class="text-red-500">*</span>
             </label>
           </div>
           <div v-if="errors.phone" class="pt-3">
@@ -385,8 +385,11 @@ const validateForm = () => {
     isValid = false;
   }
 
-  // Валидация телефона (если заполнен)
-  if (formData.value.phone && formData.value.phone !== '+7') {
+  // Валидация телефона (обязательное поле)
+  if (!formData.value.phone || formData.value.phone === '+7') {
+    errors.value.phone = 'Телефон обязателен для заполнения';
+    isValid = false;
+  } else {
     const numbers = formData.value.phone.replace(/\D/g, '');
     if (numbers.length !== 11) {
       errors.value.phone = 'Телефон должен содержать 11 цифр';
@@ -407,7 +410,7 @@ const handleRegister = async () => {
   clearErrors();
 
   try {
-    // 🆕 ДОБАВЬТЕ: Получаем referral_token из localStorage если есть
+    // Получаем referral_token из localStorage если есть
     const referralToken = localStorage.getItem('referral_token');
 
     // Подготовка данных для отправки
@@ -420,7 +423,7 @@ const handleRegister = async () => {
       phone: formData.value.phone || null,
     };
 
-    // 🆕 ДОБАВЬТЕ: Добавляем referral_token если есть
+    // Добавляем referral_token если есть
     if (referralToken) {
       payload.referral_token = referralToken;
     }

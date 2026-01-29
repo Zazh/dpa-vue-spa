@@ -65,7 +65,7 @@
     <!-- Кнопка назад и заголовок -->
     <section class="py-4 lg:py-6 grid grid-cols-12 gap-4 lg:gap-8">
       <div class="col-span-full lg:col-span-2">
-        <button @click="goBack" class="btn-back">
+        <button v-if="currentScreen !== 'taking'" @click="goBack" class="btn-back">
           <span class="btn-back__icon">
             <svg width="13" height="20" viewBox="0 0 13 20" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M11.4949 0.743164L1.49487 9.74316L11.4949 18.7432" stroke="#fff" stroke-width="2"/>
@@ -133,23 +133,7 @@
                 </div>
               </div>
 
-              <!-- Лучший результат -->
-<!--              <div v-if="quiz.best_score" class="pt-4 border-t">-->
-<!--                <p class="text-sm text-gray-600">-->
-<!--                  Лучший результат:-->
-<!--                  <span class="font-bold" :class="quiz.best_score.passed ? 'text-green-600' : 'text-red-600'">-->
-<!--                    {{ quiz.best_score.score }}%-->
-<!--                  </span>-->
-<!--                  <span v-if="quiz.best_score.passed" class="ml-2 text-green-600">✓ Тест пройден</span>-->
-<!--                </p>-->
-<!--              </div>-->
             </div>
-
-            <!-- Описание урока
-            <div v-if="lesson.description" class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
-              <p class="text-gray-700">{{ lesson.description }}</p>
-            </div>
-             -->
 
             <!-- Проверка возможности прохождения -->
             <div v-if="!quiz.can_attempt.allowed" class="bg-red-50 border border-red-200 rounded-lg p-4">
@@ -285,21 +269,31 @@
           <div v-if="currentScreen === 'results' && results" class="space-y-6">
 
             <!-- Общий результат -->
-            <div class="bg-white border-2 rounded-lg p-8 text-center" :class="results.passed ? 'border-green-500' : 'border-red-500'">
+            <!-- Общий результат -->
+            <div class="bg-white border-2 rounded-lg p-8 text-center"
+                 :class="results.time_expired ? 'border-yellow-500' : (results.passed ? 'border-green-500' : 'border-red-500')">
               <div class="mb-4">
-                <svg v-if="results.passed" class="w-20 h-20 mx-auto text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                <!-- Иконка таймаута -->
+                <svg v-if="results.time_expired" class="w-20 h-20 mx-auto text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                </svg>
+                <!-- Иконка успеха -->
+                <svg v-else-if="results.passed" class="w-20 h-20 mx-auto text-green-500" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                 </svg>
+                <!-- Иконка провала -->
                 <svg v-else class="w-20 h-20 mx-auto text-red-500" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
                 </svg>
               </div>
 
-              <h2 class="text-xl font-bold mb-2" :class="results.passed ? 'text-green-600' : 'text-red-600'">
-                {{ results.passed ? 'Тест пройден!' : 'Тест не пройден' }}
+              <h2 class="text-xl font-bold mb-2"
+                  :class="results.time_expired ? 'text-yellow-600' : (results.passed ? 'text-green-600' : 'text-red-600')">
+                {{ results.time_expired ? 'Время истекло!' : (results.passed ? 'Тест пройден!' : 'Тест не пройден') }}
               </h2>
 
-              <p class="text-5xl font-bold" :class="results.passed ? 'text-green-600' : 'text-red-600'">
+              <p class="text-5xl font-bold"
+                 :class="results.time_expired ? 'text-yellow-600' : (results.passed ? 'text-green-600' : 'text-red-600')">
                 {{ Math.round(results.score) }}%
               </p>
 
@@ -307,29 +301,16 @@
                 Проходной балл: {{ results.passing_score }}%
               </p>
 
-              <p class="text-sm text-gray-600">
+              <p v-if="!results.time_expired" class="text-sm text-gray-600">
                 Правильных ответов: {{ results.correct_answers }} из {{ results.total_questions }}
+              </p>
+
+              <p v-else class="text-sm text-yellow-700 mt-2">
+                Тест не засчитан — время на прохождение истекло
               </p>
 
               <p class="text-sm text-gray-500 mt-4">
                 Попытка #{{ results.attempt_number }}
-              </p>
-            </div>
-
-            <!-- Прогресс курса -->
-            <div v-if="results.course_progress" class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div class="flex justify-between items-center mb-2">
-                <span class="text-sm font-medium text-blue-900">Прогресс курса</span>
-                <span class="text-sm font-bold text-blue-600">{{ Math.round(results.course_progress.percentage) }}%</span>
-              </div>
-              <div class="w-full bg-blue-200 rounded-full h-2">
-                <div
-                    class="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                    :style="{ width: `${results.course_progress.percentage}%` }"
-                ></div>
-              </div>
-              <p class="text-xs text-blue-700 mt-2">
-                Завершено уроков: {{ results.course_progress.completed_lessons }}/{{ results.course_progress.total_lessons }}
               </p>
             </div>
 
@@ -381,7 +362,7 @@
               </div>
             </div>
 
-            <div v-if="!results.passed" class="bg-yellow-50 border border-gray-300 rounded-lg p-6">
+            <div v-if="!results.passed && !results.time_expired" class="bg-yellow-50 border border-gray-300 rounded-lg p-6">
               <div class="flex items-start gap-3">
                 <svg class="w-6 h-6 text-yellow-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
@@ -396,6 +377,23 @@
                     </span>
                   </p>
 
+                </div>
+              </div>
+            </div>
+            <div v-if="results.time_expired" class="bg-yellow-50 border border-yellow-300 rounded-lg p-6">
+              <div class="flex items-start gap-3">
+                <svg class="w-6 h-6 text-yellow-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                </svg>
+                <div>
+                  <h4 class="font-semibold text-yellow-900 mb-2">Время истекло</h4>
+                  <p class="text-sm text-yellow-800">
+                    К сожалению, время на прохождение теста закончилось. Попытка засчитана как неуспешная.
+                    <br>
+                    <span v-if="quiz.can_attempt?.allowed" class="text-sm text-yellow-700 mt-2">
+          Осталось попыток: <strong>{{ quiz.max_attempts - quiz.user_attempts_count }}</strong>
+        </span>
+                  </p>
                 </div>
               </div>
             </div>
@@ -588,8 +586,7 @@ function startTimer() {
       timeRemaining.value--;
     } else {
       clearTimer();
-      showNotification('⏱ Время вышло! Тест автоматически отправлен', 'warning');
-      submitQuiz();
+      submitQuiz(true); // передаём флаг что время истекло
     }
   }, 1000);
 }
@@ -657,21 +654,25 @@ async function confirmSubmit() {
           'Завершить тест?',
           `У вас остались ${unanswered.length} неотвеченных вопросов. Вы уверены что хотите завершить тест?`
       );
-      submitQuiz();
+      submitQuiz(false);
     } catch {
-      // Пользователь отменил
       return;
     }
   } else {
-    submitQuiz();
+    submitQuiz(false);
   }
 }
 
 // Отправить тест
-async function submitQuiz() {
+async function submitQuiz(isTimeout = false) {
   try {
     submitting.value = true;
     clearTimer();
+
+    // Если время истекло — показываем сообщение сразу
+    if (isTimeout) {
+      showNotification('⏱ Время истекло! Отправляем результаты...', 'warning');
+    }
 
     const answers = Object.keys(userAnswers.value).map(questionId => ({
       question_id: parseInt(questionId),
@@ -681,7 +682,20 @@ async function submitQuiz() {
     console.log('Отправка ответов:', answers);
 
     const response = await quizzesAPI.submitAnswers(currentAttemptId.value, answers);
-    results.value = response.data;
+
+    // Обрабатываем ответ с учётом timeout
+    results.value = {
+      ...response.data,
+      score: response.data.score,
+      passed: response.data.passed,
+      correct_answers: response.data.correct_answers,
+      total_questions: response.data.total_questions || questions.value.length,
+      passing_score: response.data.passing_score || quiz.value.passing_score,
+      attempt_number: response.data.attempt_number,
+      time_expired: response.data.time_expired || false,
+      status: response.data.status || 'completed'
+    };
+
     currentScreen.value = 'results';
 
     console.log('Результаты получены:', results.value);
@@ -690,7 +704,6 @@ async function submitQuiz() {
 
   } catch (err) {
     console.error('❌ Ошибка отправки теста:', err);
-    // alert('Не удалось отправить тест. Попробуйте еще раз.');
     showNotification('Не удалось отправить тест. Попробуйте еще раз.', 'error');
   } finally {
     submitting.value = false;
