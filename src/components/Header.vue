@@ -29,17 +29,63 @@
             </span>
           </router-link>
         </li>
-        <li class="nav-item">
-          <a href="index.html" class="nav-item--link">
-            <span>
+        <li class="nav-item" ref="notificationsRef">
+          <button @click="toggleNotifications" class="nav-item--link">
+    <span>
               <svg class="h-5" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M10.0153 2C5.53032 2 2.03132 5.344 2.03132 9.307C2.03132 10.726 2.47232 12.051 3.24132 13.167C3.35658 13.334 3.41831 13.5321 3.41832 13.735C3.41832 15.209 2.84932 16.695 2.33832 17.914C3.94132 17.694 4.98932 17.117 5.63332 16.301C5.76744 16.1312 5.953 16.0095 6.16216 15.9542C6.37132 15.8988 6.59278 15.9128 6.79332 15.994C7.77632 16.391 8.86532 16.614 10.0153 16.614C14.5003 16.614 17.9993 13.27 17.9993 9.307C17.9993 5.344 14.4993 2 10.0153 2ZM0.0313226 9.307C0.0313226 4.094 4.57632 0 10.0153 0C15.4543 0 19.9993 4.094 19.9993 9.307C19.9993 14.519 15.4543 18.613 10.0153 18.613C8.85732 18.613 7.74332 18.43 6.70632 18.09C5.44032 19.315 3.62232 19.906 1.42632 19.999C1.18618 20.0079 0.94797 19.9529 0.735952 19.8398C0.523934 19.7267 0.345675 19.5594 0.219323 19.355C0.097668 19.1622 0.0241666 18.9431 0.00502166 18.7159C-0.0141233 18.4888 0.02165 18.2604 0.109322 18.05C0.183322 17.87 0.258322 17.692 0.332322 17.516C0.850322 16.286 1.33532 15.134 1.40932 14.021C0.509533 12.6134 0.031375 10.9776 0.0313226 9.307Z" fill="currentColor"/>
               </svg>
-            </span>
-            <span>
-              <span class="nav-notice--icon"></span>
-            </span>
-          </a>
+    </span>
+            <span v-if="notificationsCount > 0">
+      <span class="nav-notice--icon"></span>
+    </span>
+          </button>
+
+          <!-- Выпадающий список уведомлений -->
+          <transition name="dropdown">
+            <div v-if="isNotificationsOpen" class="notifications-dropdown">
+              <div class="notifications-header">
+                <span class="notifications-title">Уведомления</span>
+                <button
+                    v-if="notifications.length > 0"
+                    @click="clearAllNotifications"
+                    class="notifications-clear">
+                  Очистить все
+                </button>
+              </div>
+
+              <div class="notifications-list">
+                <div v-if="notificationsLoading" class="notifications-loading">
+                  Загрузка...
+                </div>
+
+                <div v-else-if="notifications.length === 0" class="notifications-empty">
+                  Нет новых уведомлений
+                </div>
+
+                <div
+                    v-else
+                    v-for="notification in notifications"
+                    :key="notification.id"
+                    class="notification-item"
+                    :class="{ 'clickable': notification.link }"
+                    @click="notification.link && goToNotificationLink(notification)">
+                  <div class="notification-content">
+                    <p class="notification-title">{{ notification.title }}</p>
+                    <p class="notification-message">{{ notification.message }}</p>
+                    <span class="notification-time">{{ formatDate(notification.created_at) }}</span>
+                  </div>
+                  <button
+                      @click.stop="deleteNotification(notification.id)"
+                      class="notification-delete">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </transition>
         </li>
         <li class="nav-item" ref="profileRef">
           <button
@@ -69,15 +115,19 @@
               <!-- Пункты меню -->
               <div class="profile-dropdown-menu">
                 <!-- Настройки -->
-                <button
-                    @click="goToSettings"
+                <a
+                    href="https://wa.me/77474860319"
+                    target="_blank"
                     class="profile-dropdown-item">
-                  <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  <span>Настройки</span>
-                </button>
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                    </svg>
+<!--                  <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">-->
+<!--                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />-->
+<!--                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />-->
+<!--                  </svg>-->
+                  <span>Служба поддержки</span>
+                </a>
 
                 <!-- Выйти -->
                 <button
@@ -100,7 +150,8 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { useAuthStore } from '@/stores/auth'; // ← ИЗМЕНЕНО
+import { useAuthStore } from '@/stores/auth';
+import { notificationsAPI } from '@/services/api';
 
 const router = useRouter();
 const authStore = useAuthStore(); // ← ДОБАВЛЕНО
@@ -108,6 +159,13 @@ const authStore = useAuthStore(); // ← ДОБАВЛЕНО
 // Состояние меню
 const isMenuOpen = ref(false);
 const profileRef = ref(null);
+
+// Состояние уведомлений
+const isNotificationsOpen = ref(false);
+const notificationsRef = ref(null);
+const notifications = ref([]);
+const notificationsCount = ref(0);
+const notificationsLoading = ref(false);
 
 // ✅ ИЗМЕНЕНО: Данные пользователя из Store
 const user = computed(() => authStore.user);
@@ -144,10 +202,82 @@ const toggleMenu = () => {
 };
 
 // Закрытие меню при клике вне его
+// Закрытие меню при клике вне его
 const handleClickOutside = (event) => {
   if (profileRef.value && !profileRef.value.contains(event.target)) {
     isMenuOpen.value = false;
   }
+  if (notificationsRef.value && !notificationsRef.value.contains(event.target)) {
+    isNotificationsOpen.value = false;
+  }
+};
+
+// Загрузка уведомлений
+const loadNotifications = async () => {
+  try {
+    notificationsLoading.value = true;
+    const response = await notificationsAPI.getAll();
+    notifications.value = response.data.results || [];
+    notificationsCount.value = response.data.count || 0;
+  } catch (err) {
+    console.error('❌ Ошибка загрузки уведомлений:', err);
+  } finally {
+    notificationsLoading.value = false;
+  }
+};
+
+// Переключение панели уведомлений
+const toggleNotifications = async () => {
+  isNotificationsOpen.value = !isNotificationsOpen.value;
+  isMenuOpen.value = false; // Закрыть профиль
+
+  if (isNotificationsOpen.value && notifications.value.length === 0) {
+    await loadNotifications();
+  }
+};
+
+// Удалить одно уведомление
+const deleteNotification = async (id) => {
+  try {
+    await notificationsAPI.delete(id);
+    notifications.value = notifications.value.filter(n => n.id !== id);
+    notificationsCount.value = Math.max(0, notificationsCount.value - 1);
+  } catch (err) {
+    console.error('❌ Ошибка удаления уведомления:', err);
+  }
+};
+
+// Очистить все уведомления
+const clearAllNotifications = async () => {
+  try {
+    await notificationsAPI.clearAll();
+    notifications.value = [];
+    notificationsCount.value = 0;
+  } catch (err) {
+    console.error('❌ Ошибка очистки уведомлений:', err);
+  }
+};
+
+// Перейти по ссылке уведомления
+const goToNotificationLink = async (notification) => {
+  if (notification.link) {
+    await deleteNotification(notification.id);
+    isNotificationsOpen.value = false;
+    router.push(notification.link);
+  }
+};
+
+// Форматирование даты
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diff = now - date;
+
+  if (diff < 60000) return 'только что';
+  if (diff < 3600000) return `${Math.floor(diff / 60000)} мин назад`;
+  if (diff < 86400000) return `${Math.floor(diff / 3600000)} ч назад`;
+
+  return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
 };
 
 // ❌ УБРАЛИ: loadProfile() - данные уже в Store
@@ -168,9 +298,16 @@ const handleLogout = async () => {
 };
 
 // Lifecycle hooks
-onMounted(() => {
-  // ❌ УБРАЛИ: loadProfile() - данные уже в Store из App.vue
+onMounted(async () => {
   document.addEventListener('click', handleClickOutside);
+
+  // Загружаем количество уведомлений
+  try {
+    const response = await notificationsAPI.getCount();
+    notificationsCount.value = response.data.count || 0;
+  } catch (err) {
+    console.error('❌ Ошибка загрузки счётчика уведомлений:', err);
+  }
 });
 
 onUnmounted(() => {
@@ -306,5 +443,117 @@ onUnmounted(() => {
 .dropdown-leave-from {
   opacity: 1;
   transform: translateY(0);
+}
+
+/* Уведомления */
+.notifications-dropdown {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  width: 320px;
+  max-height: 400px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  z-index: 1000;
+}
+
+.notifications-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.notifications-title {
+  font-weight: 600;
+  color: #111827;
+}
+
+.notifications-clear {
+  font-size: 0.75rem;
+  color: #6b7280;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.notifications-clear:hover {
+  color: #dc2626;
+}
+
+.notifications-list {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.notifications-loading,
+.notifications-empty {
+  padding: 2rem;
+  text-align: center;
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.notification-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.notification-item:last-child {
+  border-bottom: none;
+}
+
+.notification-item.clickable {
+  cursor: pointer;
+}
+
+.notification-item.clickable:hover {
+  background-color: #f9fafb;
+}
+
+.notification-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-title {
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: #111827;
+  margin: 0 0 0.25rem 0;
+}
+
+.notification-message {
+  font-size: 0.8125rem;
+  color: #6b7280;
+  margin: 0 0 0.25rem 0;
+  line-height: 1.4;
+}
+
+.notification-time {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.notification-delete {
+  flex-shrink: 0;
+  padding: 0.25rem;
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  border-radius: 0.25rem;
+}
+
+.notification-delete:hover {
+  color: #dc2626;
+  background-color: #fef2f2;
 }
 </style>

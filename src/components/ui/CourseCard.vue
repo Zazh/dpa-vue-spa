@@ -58,8 +58,7 @@
                 </svg>
               </span>
               <p class="flex gap-1">
-                <span class="lessons_time">{{ formatDuration(courseDuration) }}</span>
-                <span class="lessons_time--text">{{ getHoursWord(courseDuration || 0) }}</span>
+                <span class="lessons_time">{{ courseDuration || 'Не указано' }}</span>
               </p>
             </li>
           </ul>
@@ -295,10 +294,23 @@ const handleFooterClick = (event) => {
 };
 
 const hasAccess = computed(() => {
+  // Для "Мои курсы" (showProgress=true) — всегда есть доступ
+  if (props.showProgress) {
+    return true;
+  }
+
+  // Для "Все курсы" — проверяем is_enrolled
+  if (courseData.value.is_enrolled !== undefined) {
+    return courseData.value.is_enrolled;
+  }
+
+  // Fallback на has_access если есть
   if (props.course.has_access !== undefined) {
     return props.course.has_access;
   }
-  return true;
+
+  // По умолчанию — нет доступа
+  return false;
 });
 
 // Живой обратный отсчет до разблокировки урока
@@ -479,6 +491,13 @@ const getMinutesWord = (count) => {
 };
 
 const openCourse = () => {
+  // Если нет доступа к курсу и есть project_url — открываем продажник в новой вкладке
+  if (!hasAccess.value && courseData.value.project_url) {
+    window.open(courseData.value.project_url, '_blank');
+    return;
+  }
+
+  // Если есть доступ — открываем первый урок или страницу курса
   router.push({ name: 'CourseDetail', params: { id: courseData.value.id } });
 };
 </script>

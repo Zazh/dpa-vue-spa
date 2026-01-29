@@ -51,15 +51,6 @@
         </ul>
       </div>
 
-<!--      &lt;!&ndash; Отладочная информация &ndash;&gt;-->
-<!--      <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded">-->
-<!--        <p class="text-sm">-->
-<!--          <strong>Активная вкладка:</strong> {{ activeTab }}<br>-->
-<!--          <strong>Всех курсов:</strong> {{ allCourses.length }}<br>-->
-<!--          <strong>Моих курсов:</strong> {{ myCourses.length }}-->
-<!--        </p>-->
-<!--      </div>-->
-
       <!-- Загрузка -->
       <div v-if="coursesLoading" class="py-8 text-center">
         <p class="text-gray-600">Загрузка курсов...</p>
@@ -75,15 +66,6 @@
       <div v-else class="w-full">
         <!-- ВСЕ КУРСЫ -->
         <div v-if="activeTab === 'all'" class="courses-content">
-<!--          &lt;!&ndash; 🆕 ДОБАВЬТЕ: Отладочный блок &ndash;&gt;-->
-<!--          <div class="col-span-full mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded">-->
-<!--            <p class="text-sm">-->
-<!--              <strong>🔍 Отладка "Все курсы":</strong><br>-->
-<!--              Показывается блок: {{ activeTab === 'all' ? 'Да' : 'Нет' }}<br>-->
-<!--              Количество курсов: {{ allCourses.length }}<br>-->
-<!--              Курсы пустые: {{ allCourses.length === 0 ? 'Да' : 'Нет' }}-->
-<!--            </p>-->
-<!--          </div>-->
 
           <div v-if="allCourses.length === 0" class="col-span-full text-center py-12">
             <p class="text-gray-500 text-lg">Курсы не найдены</p>
@@ -135,7 +117,9 @@
               :key="graduation.id"
               class="courses-card col-span-full md:col-span-6 lg:col-span-4 base-card"
           >
-            <div class="card_body">
+            <div class="card_body"
+                 @click="router.push({ name: 'CourseDetail', params: { id: graduation.course_id } })"
+            >
               <div class="title">
                 <div class="w-full">
                   <h4 class="h4">{{ graduation.course_title }}</h4>
@@ -147,7 +131,7 @@
                   <ul class="progress-info__list">
                     <li class="progress-info__list--item">
                       <p>
-                        <span class="lessons_count">Группа: </span> <span class="lessons_count--text">{{ graduation.group_name }}</span>
+<!--                        <span class="lessons_count">Сертификат готов</span>-->
                       </p>
                     </li>
                   </ul>
@@ -183,6 +167,7 @@
             <a  :href="graduation.certificate_url"
                 target="_blank"
                 download
+                @click.stop
                 class="card_footer cursor-pointer transition-colors">
               <div class="icon">
                 <svg class="h-7" viewBox="0 0 27 27" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -388,6 +373,13 @@ const findNextLockedLesson = (progressDetail) => {
   return null;
 };
 
+// Открыть сертификат
+const openCertificate = (url) => {
+  if (url) {
+    window.open(url, '_blank');
+  }
+};
+
 onMounted(async () => {
   // Проверяем query параметры
   if (route.query.joined === 'true') {
@@ -484,8 +476,11 @@ const loadGraduations = async () => {
     const response = await graduatesAPI.getMyGraduations();
 
     if (response.data.has_graduations) {
-      graduations.value = response.data.graduations;
-      console.log('🎓 Выпуски загружены:', graduations.value.length);
+      // ✅ Показываем только выпущенные сертификаты (менеджер нажал "Выпустить")
+      graduations.value = response.data.graduations.filter(
+          g => g.status === 'graduated' && g.certificate_url
+      );
+      console.log('🎓 Выпуски с сертификатами:', graduations.value.length);
     }
   } catch (err) {
     console.error('❌ Ошибка загрузки выпусков:', err);

@@ -233,6 +233,20 @@ export const graduatesAPI = {
     getCertificate: (id) => api.get(`/graduates/${id}/certificate/`),
 };
 
+export const notificationsAPI = {
+    // Получить список уведомлений
+    getAll: () => api.get('/notifications/'),
+
+    // Получить количество уведомлений
+    getCount: () => api.get('/notifications/count/'),
+
+    // Удалить одно уведомление
+    delete: (id) => api.delete(`/notifications/${id}/`),
+
+    // Очистить все уведомления
+    clearAll: () => api.delete('/notifications/clear/'),
+};
+
 // Payments API
 export const paymentsAPI = {
     // Создать заказ
