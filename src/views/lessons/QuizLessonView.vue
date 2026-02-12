@@ -149,6 +149,34 @@
               </div>
             </div>
 
+            <!-- Расписание экзамена (бесплатные группы) -->
+            <div v-else-if="showExamSchedule" class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div class="flex items-center gap-3">
+                <svg class="w-6 h-6 text-blue-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                </svg>
+                <div class="flex-1">
+                  <!-- Таймер обратного отсчёта -->
+                  <p v-if="examStatus === 'countdown'" class="text-blue-800 font-medium">
+                    Тест начнётся через:
+                    <span class="font-mono text-lg font-bold">{{ countdown }}</span>
+                  </p>
+                  <!-- Дата в будущем -->
+                  <p v-else-if="examStatus === 'future'" class="text-blue-800 font-medium">
+                    Итоговый тест: {{ scheduleDateText }}
+                  </p>
+                  <!-- Тест активен — показываем кнопку ниже -->
+                  <template v-else-if="examStatus === 'active'">
+                    <p class="text-green-800 font-medium">Тест доступен! Осталось: {{ timeLeft }}</p>
+                  </template>
+                  <!-- Время прошло -->
+                  <p v-else-if="examStatus === 'expired'" class="text-gray-500 font-medium">
+                    Итоговый тест завершён
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <!-- Ожидание / лимит исчерпан — жёлтый блок -->
             <div v-else-if="!quiz.can_attempt.allowed" class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
               <div class="flex items-center gap-3">
@@ -169,7 +197,7 @@
 
             <!-- Кнопка старта -->
             <button
-                v-else
+                v-else-if="quiz.can_attempt.allowed || examIsAvailable"
                 @click="startQuiz"
                 :disabled="startingQuiz"
                 class="w-full bg-blue-600 text-white py-4 px-6 rounded-lg font-semibold text-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -465,6 +493,7 @@ import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router';
 import { lessonsAPI, quizzesAPI } from '@/services/api';
 import MainLayout from '@/layouts/MainLayout.vue';
 import { usePageMeta } from '@/composables/usePageMeta';
+import { useExamCountdown } from '@/composables/useExamCountdown.js'
 
 const route = useRoute();
 const router = useRouter();
@@ -551,6 +580,25 @@ const passedAttempt = computed(() => {
           parseFloat(attempt.score_percentage) >= quiz.value?.passing_score
   );
 });
+
+// === Расписание экзамена ===
+const examSchedule = computed(() => quiz.value?.can_attempt?.exam_schedule ?? null)
+
+async function refetchCanAttempt() {
+  try {
+    const response = await lessonsAPI.getLesson(route.params.id)
+    quiz.value = response.data.quiz
+  } catch (err) {
+    console.error('Ошибка обновления can_attempt:', err)
+  }
+}
+
+const { status: examStatus, countdown, isAvailable: examIsAvailable, timeLeft, scheduleDateText } =
+    useExamCountdown(examSchedule, refetchCanAttempt)
+
+const showExamSchedule = computed(() =>
+    quiz.value?.can_attempt?.allowed === false && examSchedule.value != null
+)
 
 // Предупреждение при попытке уйти во время теста
 function handleBeforeUnload(e) {
