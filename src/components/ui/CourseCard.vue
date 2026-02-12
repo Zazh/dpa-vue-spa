@@ -101,7 +101,7 @@
         v-if="showFooter"
         class="card_footer"
         :class="{
-      'cursor-pointer hover:bg-gray-50': cardState !== 'locked',
+      'cursor-pointer': cardState !== 'locked',
       'cursor-not-allowed': cardState === 'locked'
     }"
         @click="handleFooterClick"

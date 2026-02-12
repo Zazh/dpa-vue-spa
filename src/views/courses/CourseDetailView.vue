@@ -49,13 +49,13 @@
                   <div class="progress-info">
                     <ul class="progress-info__list">
                       <li class="progress-info__list--item">
-                        <p>
+                        <p class="flex gap-1">
                           <span class="lessons_count">{{ progressData?.completed_lessons_count }}/{{ totalLessons }}</span>
                           <span class="lessons_count--text">уроков</span>
                         </p>
                       </li>
                       <li class="progress-info__list--item">
-                        <p>
+                        <p class="flex gap-1">
                           <span class="lessons_time">{{ progressPercentage }}%</span>
                           <span class="lessons_time--text">пройдено</span>
                         </p>
