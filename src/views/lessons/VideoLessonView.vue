@@ -121,7 +121,6 @@
               >
 
                 <a :href="material.file || material.url"
-                   :download="getDownloadName(material)"
                    target="_blank"
                    class="flex gap-4 items-center py-4 px-4 w-full"
                 >
