@@ -44,12 +44,12 @@
               </svg>
               {{ text.estimated_reading_time }} мин. чтения
             </span>
-            <span class="flex items-center gap-1">
-              <svg class="w-4 h-5 -mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-              </svg>
-              {{ text.word_count }} слов
-            </span>
+<!--            <span class="flex items-center gap-1">-->
+<!--              <svg class="w-4 h-5 -mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">-->
+<!--                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>-->
+<!--              </svg>-->
+<!--              {{ text.word_count }} слов-->
+<!--            </span>-->
           </div>
 
           <!-- Описание урока (если есть)
@@ -75,7 +75,7 @@
               >
                 <a
                     :href="material.file || material.url"
-                    :download="material.file ? true : false"
+                    :download="getDownloadName(material)"
                     target="_blank"
                     class="flex gap-4 items-center py-4 px-4 w-full"
                 >
@@ -123,6 +123,27 @@ const progress = ref(null);
 const materials = ref([]);
 
 usePageMeta('Текстовый урок', 'Личный кабинет');
+
+function getDownloadName(material) {
+  if (!material.file) return undefined;
+  const translitMap = {
+    'а':'a','б':'b','в':'v','г':'g','д':'d','е':'e','ё':'yo','ж':'zh','з':'z','и':'i',
+    'й':'y','к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r','с':'s','т':'t',
+    'у':'u','ф':'f','х':'kh','ц':'ts','ч':'ch','ш':'sh','щ':'shch','ъ':'','ы':'y',
+    'ь':'','э':'e','ю':'yu','я':'ya',
+    'А':'A','Б':'B','В':'V','Г':'G','Д':'D','Е':'E','Ё':'Yo','Ж':'Zh','З':'Z','И':'I',
+    'Й':'Y','К':'K','Л':'L','М':'M','Н':'N','О':'O','П':'P','Р':'R','С':'S','Т':'T',
+    'У':'U','Ф':'F','Х':'Kh','Ц':'Ts','Ч':'Ch','Ш':'Sh','Щ':'Shch','Ъ':'','Ы':'Y',
+    'Ь':'','Э':'E','Ю':'Yu','Я':'Ya'
+  };
+  const title = (material.title || 'file')
+    .split('').map(ch => translitMap[ch] || ch).join('')
+    .replace(/[^a-zA-Z0-9]+/g, '_')
+    .replace(/^_|_$/g, '');
+  const urlPath = new URL(material.file, location.origin).pathname;
+  const ext = urlPath.includes('.') ? '.' + urlPath.split('.').pop() : '';
+  return title + ext;
+}
 
 // Загрузка урока
 onMounted(async () => {

@@ -121,7 +121,7 @@
               >
 
                 <a :href="material.file || material.url"
-                   :download="material.file ? true : false"
+                   :download="getDownloadName(material)"
                    target="_blank"
                    class="flex gap-4 items-center py-4 px-4 w-full"
                 >
@@ -173,6 +173,27 @@ const lesson = ref(null);
 const video = ref(null);
 const progress = ref(null);
 const materials = ref([]);
+
+function getDownloadName(material) {
+  if (!material.file) return undefined;
+  const translitMap = {
+    'а':'a','б':'b','в':'v','г':'g','д':'d','е':'e','ё':'yo','ж':'zh','з':'z','и':'i',
+    'й':'y','к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r','с':'s','т':'t',
+    'у':'u','ф':'f','х':'kh','ц':'ts','ч':'ch','ш':'sh','щ':'shch','ъ':'','ы':'y',
+    'ь':'','э':'e','ю':'yu','я':'ya',
+    'А':'A','Б':'B','В':'V','Г':'G','Д':'D','Е':'E','Ё':'Yo','Ж':'Zh','З':'Z','И':'I',
+    'Й':'Y','К':'K','Л':'L','М':'M','Н':'N','О':'O','П':'P','Р':'R','С':'S','Т':'T',
+    'У':'U','Ф':'F','Х':'Kh','Ц':'Ts','Ч':'Ch','Ш':'Sh','Щ':'Shch','Ъ':'','Ы':'Y',
+    'Ь':'','Э':'E','Ю':'Yu','Я':'Ya'
+  };
+  const title = (material.title || 'file')
+    .split('').map(ch => translitMap[ch] || ch).join('')
+    .replace(/[^a-zA-Z0-9]+/g, '_')
+    .replace(/^_|_$/g, '');
+  const urlPath = new URL(material.file, location.origin).pathname;
+  const ext = urlPath.includes('.') ? '.' + urlPath.split('.').pop() : '';
+  return title + ext;
+}
 const currentProgress = ref(0);
 const nextLesson = ref(null);
 
