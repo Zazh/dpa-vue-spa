@@ -157,7 +157,7 @@
                 peer-focus:top-4 peer-focus:text-xs
                 peer-[:not(:placeholder-shown)]:top-4 peer-[:not(:placeholder-shown)]:text-xs
                 transition-all duration-200 pointer-events-none">
-              Телефон
+              Телефон <span class="text-red-500">*</span>
             </label>
           </div>
           <div v-if="errors.phone" class="pt-3">
