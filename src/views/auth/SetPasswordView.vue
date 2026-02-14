@@ -146,7 +146,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { accountAPI } from '@/services/api.js';
+import { accountAPI, groupsAPI } from '@/services/api.js';
 import { useAuthStore } from '@/stores/auth';
 import AuthLayout from "@/layouts/AuthLayout.vue";
 import { usePageMeta } from '@/composables/usePageMeta.js';
@@ -240,6 +240,15 @@ const handleSetPassword = async () => {
             console.log('✅ Зачислен на курс:', orderResult.courseName);
           } else {
             console.error('❌ Ошибка зачисления:', orderResult.error);
+          }
+        }
+
+        // Проверяем реферальный токен и зачисляем в группу
+        if (referralToken) {
+          try {
+            await groupsAPI.joinGroup(referralToken);
+          } catch (joinErr) {
+            console.error('Ошибка присоединения к группе:', joinErr);
           }
         }
 
