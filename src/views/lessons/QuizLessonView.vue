@@ -874,6 +874,7 @@ async function submitQuiz(isTimeout = false) {
     console.log('Результаты получены:', results.value);
 
     await loadAttemptHistory();
+    await refetchCanAttempt();
 
   } catch (err) {
     console.error('❌ Ошибка отправки теста:', err);
