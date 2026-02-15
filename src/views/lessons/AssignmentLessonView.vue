@@ -92,7 +92,7 @@
                   <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
                   </svg>
-                  <span>{{ assignment.require_file ? 'Файл обязателен' : 'Файл опционально' }}</span>
+                  <span>{{ assignment.require_file ? 'Файл обязателен' : 'Файл не требуется' }}</span>
                 </div>
               </div>
 
@@ -172,9 +172,10 @@
               <!-- Файл -->
               <div v-if="assignment.require_file || !assignment.require_text">
                 <label class="block text-sm font-medium text-gray-700 mb-2">
-                  Прикрепить файл {{ assignment.require_file ? '*' : '(опционально)' }}
+                  Прикрепить файл {{ assignment.require_file ? '*' : '' }}
                 </label>
                 <input
+                    ref="fileInput"
                     type="file"
                     @change="handleFileSelect"
                     class="w-full text-sm text-gray-500
@@ -185,9 +186,16 @@
                     hover:file:bg-blue-100
                     cursor-pointer"
                 />
-                <p v-if="submissionForm.fileName" class="mt-2 text-sm text-gray-600">
-                  Выбран файл: {{ submissionForm.fileName }}
-                </p>
+                <div v-if="submissionForm.fileName" class="mt-2 flex items-center gap-2">
+                  <span class="text-sm text-gray-600">{{ submissionForm.fileName }}</span>
+                  <button
+                      @click="clearFile"
+                      type="button"
+                      class="text-sm text-red-500 hover:text-red-700 font-medium"
+                  >
+                    Стереть
+                  </button>
+                </div>
               </div>
 
               <!-- Кнопка отправки -->
@@ -375,6 +383,7 @@ const submissions = ref([]);
 const currentScreen = ref('info');
 
 // Форма сдачи
+const fileInput = ref(null);
 const submitting = ref(false);
 const submissionForm = ref({
   text: '',
@@ -509,6 +518,14 @@ function handleFileSelect(event) {
   if (file) {
     submissionForm.value.file = file;
     submissionForm.value.fileName = file.name;
+  }
+}
+
+function clearFile() {
+  submissionForm.value.file = null;
+  submissionForm.value.fileName = '';
+  if (fileInput.value) {
+    fileInput.value.value = '';
   }
 }
 
