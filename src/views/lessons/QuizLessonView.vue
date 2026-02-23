@@ -670,11 +670,8 @@ async function loadLesson() {
 // Загрузить историю попыток
 async function loadAttemptHistory() {
   try {
-    const response = await quizzesAPI.getAttempts();
-    // Фильтруем только попытки этого квиза
-    attemptHistory.value = response.data.filter(
-        attempt => attempt.quiz_title === lesson.value?.title
-    );
+    const response = await quizzesAPI.getAttempts(quiz.value?.id);
+    attemptHistory.value = response.data;
   } catch (err) {
     console.error('Ошибка загрузки истории:', err);
   }

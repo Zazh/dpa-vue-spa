@@ -225,8 +225,9 @@ export const quizzesAPI = {
     startQuiz(quizId) {
         return api.post(`/quizzes/${quizId}/start/`);
     },
-    getAttempts() {
-        return api.get('/quizzes/attempts/');
+    getAttempts(quizId) {
+        const params = quizId ? { quiz_id: quizId } : {};
+        return api.get('/quizzes/attempts/', { params });
     },
     getAttempt(attemptId) {
         return api.get(`/quizzes/attempts/${attemptId}/`);
