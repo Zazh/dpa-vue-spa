@@ -16,11 +16,16 @@ export const useAuthStore = defineStore('auth', {
     actions: {
         // Проверка авторизации при загрузке приложения
         async ensureAuth() {
-            console.log('🔐 ensureAuth() начался');
-            const token = localStorage.getItem('access_token');
+            let token = null;
+            try {
+                token = localStorage.getItem('access_token');
+            } catch (e) {
+                // Safari private mode / blocked cookies
+                this.initialized = true;
+                return;
+            }
 
             if (!token) {
-                console.log('❌ Access token отсутствует');
                 this.initialized = true;
                 return;
             }
@@ -51,8 +56,10 @@ export const useAuthStore = defineStore('auth', {
                 const res = await accountAPI.login(email, password);
 
                 // Сохраняем токены
-                localStorage.setItem('access_token', res.data.access);
-                localStorage.setItem('refresh_token', res.data.refresh);
+                try {
+                    localStorage.setItem('access_token', res.data.access);
+                    localStorage.setItem('refresh_token', res.data.refresh);
+                } catch (e) { /* storage unavailable */ }
 
                 // Сохраняем пользователя
                 this.user = res.data.user || null;
@@ -72,7 +79,8 @@ export const useAuthStore = defineStore('auth', {
         // Выход (с отправкой на backend)
         async logout() {
             try {
-                const refreshToken = localStorage.getItem('refresh_token');
+                let refreshToken = null;
+                try { refreshToken = localStorage.getItem('refresh_token'); } catch (e) { /* */ }
 
                 if (refreshToken) {
                     // Отправляем refresh токен на сервер для блокировки
@@ -85,9 +93,11 @@ export const useAuthStore = defineStore('auth', {
             } finally {
                 // В любом случае очищаем локальное хранилище
                 this.user = null;
-                localStorage.removeItem('access_token');
-                localStorage.removeItem('refresh_token');
-                sessionStorage.removeItem('email');
+                try {
+                    localStorage.removeItem('access_token');
+                    localStorage.removeItem('refresh_token');
+                    sessionStorage.removeItem('email');
+                } catch (e) { /* storage unavailable */ }
                 console.log('✅ Локальные данные очищены');
             }
         }

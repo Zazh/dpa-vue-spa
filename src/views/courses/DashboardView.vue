@@ -102,13 +102,19 @@
             </div>
           </article>
 
-          <CourseCard
-              v-for="course in enrichedMyCourses"
-              :key="course.course.id"
-              :course="course"
-              :show-progress="true"
-              class="col-span-full md:col-span-6 lg:col-span-4"
-          />
+          <template v-for="course in enrichedMyCourses" :key="course.course.id">
+            <OfflineCourseCard
+                v-if="course.is_offline"
+                :course="course"
+                class="col-span-full md:col-span-6 lg:col-span-4"
+            />
+            <CourseCard
+                v-else
+                :course="course"
+                :show-progress="true"
+                class="col-span-full md:col-span-6 lg:col-span-4"
+            />
+          </template>
 
 
           <!-- карточка сертификата -->
@@ -194,6 +200,7 @@ import { coursesAPI, graduatesAPI } from '@/services/api.js';
 import { useAuthStore } from '@/stores/auth'; //
 import MainLayout from '@/layouts/MainLayout.vue';
 import CourseCard from '@/components/ui/CourseCard.vue';
+import OfflineCourseCard from '@/components/ui/OfflineCourseCard.vue';
 import { usePageMeta } from '@/composables/usePageMeta.js';
 
 

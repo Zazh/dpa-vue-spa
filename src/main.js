@@ -14,6 +14,10 @@ Sentry.init({
     dsn: import.meta.env.VITE_SENTRY_DSN,
     environment: import.meta.env.MODE,
     enabled: !!import.meta.env.VITE_SENTRY_DSN,
+    ignoreErrors: [
+        'The play() request was interrupted',
+        'The operation is insecure',
+    ],
 });
 
 app.use(pinia);

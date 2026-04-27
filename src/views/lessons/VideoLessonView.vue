@@ -200,8 +200,11 @@ const nextLesson = ref(null);
 const videoFrame = ref(null);
 let player = null;
 let lessonCompleted = false;
-let lastUpdateTime = 0;
 let wasPlayingBeforeHidden = false;
+
+// Milestone-based progress tracking (вместо отправки каждые 5 сек)
+const MILESTONES = [10, 20, 30, 40, 50, 60, 70, 80, 85, 90, 95];
+let sentMilestones = new Set();
 
 
 usePageMeta('Страница урока', 'Личный кабинет');
@@ -266,8 +269,9 @@ async function loadLesson() {
     console.log('✅ Урок загружен:', lesson.value.title);
     console.log('🎥 Видео:', video.value);
 
-    // Устанавливаем текущий прогресс
+    // Устанавливаем текущий прогресс и отмечаем уже пройденные milestone'ы
     currentProgress.value = progress.value.watch_percentage || 0;
+    sentMilestones = new Set(MILESTONES.filter(m => m <= currentProgress.value));
 
     // КРИТИЧНО: Устанавливаем loading = false ПЕРЕД nextTick
     loading.value = false;
@@ -329,21 +333,23 @@ async function initializePlayer() {
   }
 }
 
-// Обработка прогресса просмотра
+// Обработка прогресса просмотра (milestone-based)
 async function handleTimeUpdate(data) {
   const percentage = (data.seconds / data.duration) * 100;
 
   // Обновляем UI
   currentProgress.value = percentage;
 
-  // Отправляем на сервер каждые 5 секунд
-  const now = Math.floor(data.seconds);
-  if (now % 5 === 0 && now !== lastUpdateTime) {
-    lastUpdateTime = now;
+  // Отправляем только при пересечении milestone'ов: 10,20,...,80,85,90,95
+  const newMilestones = MILESTONES.filter(m => !sentMilestones.has(m) && percentage >= m);
+
+  if (newMilestones.length > 0) {
+    newMilestones.forEach(m => sentMilestones.add(m));
 
     try {
+      const highestMilestone = Math.max(...newMilestones);
       const response = await lessonsAPI.updateVideoProgress(route.params.id, {
-        percentage: percentage
+        percentage: highestMilestone
       });
 
       // Проверяем достигли ли порога завершения

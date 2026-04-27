@@ -53,10 +53,12 @@ const processQueue = (error, token = null) => {
 // ============================================
 api.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem('access_token');
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
-        }
+        try {
+            const token = localStorage.getItem('access_token');
+            if (token) {
+                config.headers.Authorization = `Bearer ${token}`;
+            }
+        } catch (e) { /* Safari private mode */ }
         return config;
     },
     (error) => {
@@ -107,21 +109,23 @@ api.interceptors.response.use(
             isRefreshing = true;
 
             // Проверяем, может токен уже обновился в другой вкладке
-            const currentAccessToken = localStorage.getItem('access_token');
+            let currentAccessToken = null;
+            let refreshToken = null;
+            try {
+                currentAccessToken = localStorage.getItem('access_token');
+                refreshToken = localStorage.getItem('refresh_token');
+            } catch (e) { /* Safari private */ }
+
             const originalToken = originalRequest.headers.Authorization?.replace('Bearer ', '');
 
             if (currentAccessToken && currentAccessToken !== originalToken) {
-                console.log('✅ Токен уже обновлён в другой вкладке');
                 isRefreshing = false;
                 originalRequest.headers.Authorization = `Bearer ${currentAccessToken}`;
                 return api(originalRequest);
             }
 
-            const refreshToken = localStorage.getItem('refresh_token');
-
             if (!refreshToken) {
-                console.log('❌ Refresh токен отсутствует!');
-                localStorage.removeItem('access_token');
+                try { localStorage.removeItem('access_token'); } catch (e) { /* */ }
                 isRefreshing = false;
                 window.location.href = '/';
                 return Promise.reject(error);
@@ -134,13 +138,11 @@ api.interceptors.response.use(
                     refresh: refreshToken
                 });
 
-                const { access, refresh } = response.data;  // ← Добавь refresh
-                localStorage.setItem('access_token', access);
-
-                // сохраняем новый refresh token
-                if (refresh) {
-                    localStorage.setItem('refresh_token', refresh);
-                }
+                const { access, refresh } = response.data;
+                try {
+                    localStorage.setItem('access_token', access);
+                    if (refresh) localStorage.setItem('refresh_token', refresh);
+                } catch (e) { /* */ }
 
                 console.log('✅ Токен успешно обновлен!');
 
@@ -154,9 +156,10 @@ api.interceptors.response.use(
 
                 processQueue(refreshError, null);
 
-                // Удаляем токены только если refresh провалился
-                localStorage.removeItem('access_token');
-                localStorage.removeItem('refresh_token');
+                try {
+                    localStorage.removeItem('access_token');
+                    localStorage.removeItem('refresh_token');
+                } catch (e) { /* */ }
 
                 window.location.href = '/';
                 return Promise.reject(refreshError);
@@ -204,6 +207,7 @@ export const coursesAPI = {
     getAllCourses: () => api.get('/courses/'),
     getMyCourses: () => api.get('/courses/my/'),
     getCourseDetail: (courseId) => api.get(`/courses/${courseId}/`),
+    getOfflineCourseInfo: (courseId) => api.get(`/courses/${courseId}/offline-info/`),
     getCourseProgress: (courseId) => api.get(`/courses/${courseId}/progress/`),
     getLessonDetail: (lessonId) => api.get(`/lessons/${lessonId}/`),
     completeLesson: (lessonId) => api.post(`/lessons/${lessonId}/complete/`),

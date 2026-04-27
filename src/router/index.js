@@ -117,6 +117,12 @@ const routes = [
         component: () => import('@/views/courses/CourseDetailView.vue'),
         meta: { requiresAuth: true }
     },
+    {
+        path: '/courses/:id/offline',
+        name: 'OfflineCourseDetail',
+        component: () => import('@/views/courses/OfflineCourseDetailView.vue'),
+        meta: { requiresAuth: true }
+    },
 
     // ==================== LESSON ROUTES ====================
     {
@@ -179,7 +185,8 @@ const router = createRouter({
 // ✅ ИСПРАВЛЕНО: Guard использует localStorage напрямую
 router.beforeEach((to, from, next) => {
     // Простая проверка по токену
-    const isAuthenticated = !!localStorage.getItem('access_token');
+    let isAuthenticated = false;
+    try { isAuthenticated = !!localStorage.getItem('access_token'); } catch (e) { /* Safari private */ }
 
     if (to.meta.requiresAuth && !isAuthenticated) {
         console.log('🚫 Доступ запрещен, перенаправляем на CheckEmail');

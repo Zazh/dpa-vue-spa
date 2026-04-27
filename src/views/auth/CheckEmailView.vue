@@ -147,7 +147,7 @@ const handleSubmit = async () => {
     if (response.data.exists) {
       router.push({ name: 'Login' });
     } else {
-      router.push({ name: 'Register' });
+      router.push({ name: 'EgovAuth' });
     }
   } catch (err) {
     console.error('❌ Полная ошибка:', err); // Отладка
