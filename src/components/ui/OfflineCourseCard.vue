@@ -93,12 +93,6 @@ const trainingStartLabel = computed(() => {
   return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
 });
 
-const instructorsLabel = computed(() => {
-  const list = props.course.instructors || [];
-  if (!list.length) return '';
-  return list.map(i => i.name).join(', ');
-});
-
 const isGraduated = computed(() => {
   const g = props.course.graduate;
   return !!(g && g.status === 'graduated');

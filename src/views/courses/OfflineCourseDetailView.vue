@@ -118,13 +118,9 @@
                   <p class="text-base text-gray-900 font-medium">{{ course.duration }}</p>
                 </div>
 
-                <div v-if="instructors.length" class="p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                  <p class="text-xs uppercase text-gray-500 font-medium mb-2">{{ instructors.length === 1 ? 'Инструктор' : 'Инструкторы' }}</p>
-                  <ul class="flex flex-col gap-1">
-                    <li v-for="i in instructors" :key="i.id" class="text-base text-gray-900 font-medium">
-                      {{ i.name }}
-                    </li>
-                  </ul>
+                <div v-if="instructor" class="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                  <p class="text-xs uppercase text-gray-500 font-medium mb-2">Инструктор</p>
+                  <p class="text-base text-gray-900 font-medium">{{ instructor.name }}</p>
                 </div>
 
                 <div v-if="graduate" class="p-4 bg-green-50 border border-green-200 rounded-lg">
@@ -226,7 +222,7 @@ const error = ref('');
 
 const course = ref(null);
 const group = ref(null);
-const instructors = ref([]);
+const instructor = ref(null);
 const graduate = ref(null);
 const finalExam = ref(null);
 
@@ -301,7 +297,7 @@ const loadOfflineCourse = async () => {
     const response = await coursesAPI.getOfflineCourseInfo(courseId.value);
     course.value = response.data.course;
     group.value = response.data.group;
-    instructors.value = response.data.instructors || [];
+    instructor.value = response.data.instructor || null;
     graduate.value = response.data.graduate;
     finalExam.value = response.data.final_exam || null;
   } catch (err) {
