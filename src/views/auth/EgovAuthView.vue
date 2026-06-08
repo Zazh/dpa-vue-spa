@@ -206,7 +206,10 @@ const checkStatusOnce = async () => {
     if (data.documents_ready) {
       documentsReady.value = true;
     }
-    if (data.status === 'signed' || data.status === 'completed') {
+    if (data.status === 'email_verification_required') {
+      clearTimers();
+      handleEmailVerificationRequired(data);
+    } else if (data.status === 'signed' || data.status === 'completed') {
       clearTimers();
       handleCompleted(data);
     }
@@ -231,8 +234,13 @@ const startPolling = () => {
         documentsReady.value = true;
       }
 
+      // eGov-подпись прошла, но email не подтверждён → требуем подтверждение почты
+      if (data.status === 'email_verification_required') {
+        clearTimers();
+        handleEmailVerificationRequired(data);
+      }
       // Обрабатываем оба статуса: signed (новый юзер) и completed (существующий)
-      if (data.status === 'signed' || data.status === 'completed') {
+      else if (data.status === 'signed' || data.status === 'completed') {
         clearTimers();
         handleCompleted(data);
       } else if (data.status === 'error' || data.status === 'expired') {
@@ -258,6 +266,16 @@ const startExpirationTimer = () => {
       expired.value = true;
     }
   }, 1000);
+};
+
+// eGov-подпись прошла, но пользователь не подтвердил email → в кабинет не пускаем.
+// Бэк уже переотправил ссылку, если прежняя протухла. Ведём на «проверьте почту».
+const handleEmailVerificationRequired = (data) => {
+  status.value = 'processing';
+  if (data.email) {
+    sessionStorage.setItem('registration_email', data.email);
+  }
+  router.push({ name: 'EmailSent' });
 };
 
 // Обработка успешной подписи
